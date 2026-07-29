@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+  pull_request:
+
+jobs:
+  build-test-audit:
+    name: Build, test, lint, and audit
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'global.json') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore backend
+        run: dotnet restore .\PersonalOS.slnx
+
+      - name: Build backend
+        run: dotnet build .\PersonalOS.slnx --no-restore
+
+      - name: Test backend
+        run: dotnet test .\PersonalOS.slnx --no-build
+
+      - name: Audit NuGet packages
+        run: dotnet package list --project .\PersonalOS.slnx --vulnerable --include-transitive
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/PersonalOS.Web/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm --prefix .\web\PersonalOS.Web ci
+
+      - name: Lint frontend
+        run: npm --prefix .\web\PersonalOS.Web run lint
+
+      - name: Test frontend
+        run: npm --prefix .\web\PersonalOS.Web run test -- --run
+
+      - name: Build frontend
+        run: npm --prefix .\web\PersonalOS.Web run build
+
+      - name: Audit npm packages
+        run: npm --prefix .\web\PersonalOS.Web audit --audit-level=high

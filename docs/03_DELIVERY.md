@@ -22,6 +22,12 @@ Resultado observable:
 7. cerrar sesión;
 8. quedar fuera de la ruta protegida.
 
+Decisión de registro M1:
+
+- `POST /api/auth/register` crea la cuenta y no inicia sesión automáticamente;
+- React muestra confirmación en la pantalla de login;
+- el usuario debe iniciar sesión explícitamente.
+
 ## 2. Alcance M1
 
 ### Backend
@@ -199,6 +205,13 @@ Mínimos:
 
 SQLite in-memory puede usarse al inicio para integración, pero no sustituye pruebas de migración en SQL Server.
 
+Implementación actual:
+
+- `WebApplicationFactory` reemplaza SQL Server por SQLite in-memory;
+- la conexión SQLite permanece abierta durante cada factory;
+- SQLite crea el esquema efímero con `EnsureCreated()` porque la migración SQL Server contiene tipos no portables como `nvarchar(max)`;
+- esto no valida migraciones SQL Server; la migración real se verifica contra LocalDB Development.
+
 ## 7. Frontend tests
 
 Mínimos:
@@ -249,6 +262,27 @@ test --run
 build
 npm audit
 ```
+
+Comandos definitivos desde la raíz:
+
+```powershell
+dotnet restore .\PersonalOS.slnx
+dotnet build .\PersonalOS.slnx --no-restore
+dotnet test .\PersonalOS.slnx --no-build
+dotnet package list --project .\PersonalOS.slnx --vulnerable --include-transitive
+
+npm --prefix .\web\PersonalOS.Web ci
+npm --prefix .\web\PersonalOS.Web run lint
+npm --prefix .\web\PersonalOS.Web run test -- --run
+npm --prefix .\web\PersonalOS.Web run build
+npm --prefix .\web\PersonalOS.Web audit --audit-level=high
+```
+
+Resultado comprobado:
+
+- `dotnet package list --project .\PersonalOS.slnx --vulnerable --include-transitive`
+  se ejecuta sobre la solución completa y no reporta paquetes vulnerables en
+  los orígenes actuales.
 
 Gate:
 

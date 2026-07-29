@@ -1,5 +1,7 @@
 <Solution>
-  <Folder Name="/docs/" />
+  <Folder Name="/docs/">
+    <File Path="docs/PersonalOS_Dossier_v1.0.md" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/PersonalOS.Api/PersonalOS.Api.csproj" />
     <Project Path="src/PersonalOS.Application/PersonalOS.Application.csproj" />

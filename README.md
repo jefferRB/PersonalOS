@@ -113,7 +113,8 @@ PersonalOS/
 - [x] Build de React.
 - [x] Auditoría inicial de dependencias.
 - [x] Documentación consolidada.
-- [ ] M1: autenticación y walking skeleton.
+- [ ] M1: autenticación y walking skeleton implementado y validado localmente;
+  pendiente de ejecución remota de CI tras push o pull request.
 - [ ] M2: perfil y tiempo.
 - [ ] M3: planificación.
 - [ ] M4: hábitos.
@@ -138,11 +139,30 @@ Frontend:
 
 ```powershell
 npm --prefix .\web\PersonalOS.Web ci
+npm --prefix .\web\PersonalOS.Web run lint
+npm --prefix .\web\PersonalOS.Web run test -- --run
 npm --prefix .\web\PersonalOS.Web run build
 npm --prefix .\web\PersonalOS.Web audit --audit-level=high
 ```
 
-Los scripts de lint y pruebas frontend se incorporarán en M1.
+## Ejecución local M1
+
+Aplicar la migración inicial en LocalDB Development:
+
+```powershell
+dotnet tool restore
+$env:ASPNETCORE_ENVIRONMENT='Development'
+dotnet tool run dotnet-ef database update --project .\src\PersonalOS.Infrastructure\PersonalOS.Infrastructure.csproj --startup-project .\src\PersonalOS.Api\PersonalOS.Api.csproj
+```
+
+Iniciar API y React:
+
+```powershell
+dotnet run --project .\src\PersonalOS.Api\PersonalOS.Api.csproj --launch-profile https
+npm --prefix .\web\PersonalOS.Web run dev
+```
+
+Vite proxya `/api` y `/health` hacia `https://localhost:7268`.
 
 ## Evolución futura
 
