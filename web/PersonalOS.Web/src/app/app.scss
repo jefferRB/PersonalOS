@@ -1,0 +1,46 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.startup {
+  display: grid;
+  min-height: 100vh;
+  place-content: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  text-align: center;
+}
+
+.startup__mark {
+  display: inline-grid;
+  width: 4rem;
+  height: 4rem;
+  place-items: center;
+  justify-self: center;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.startup__mark svg {
+  width: 2.5rem;
+  height: 2.5rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.startup__brand {
+  margin: 0;
+  color: var(--color-primary);
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.startup h1 {
+  margin: 0;
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+}

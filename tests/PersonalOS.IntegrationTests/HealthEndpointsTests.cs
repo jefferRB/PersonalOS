@@ -19,6 +19,9 @@ public sealed class HealthEndpointsTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("Healthy", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("nosniff", response.Headers.GetValues("X-Content-Type-Options").Single());
+        Assert.Equal("no-referrer", response.Headers.GetValues("Referrer-Policy").Single());
+        Assert.Equal("DENY", response.Headers.GetValues("X-Frame-Options").Single());
     }
 
     [Fact]

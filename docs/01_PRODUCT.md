@@ -1,190 +1,191 @@
-# PersonalOS — Producto, alcance y experiencia
+# PersonalOS - Product, Scope, and Experience
 
-**Versión:** 1.0  
-**Estado:** Baseline
+**Version:** 1.1
+**Status:** Milestone 1 Angular walking skeleton
 
-## 1. Problema
+## 1. Problem
 
-La vida personal suele administrarse con herramientas separadas:
+Personal life is commonly managed through separate tools:
 
-- calendario;
-- notas;
-- tareas;
-- hábitos;
-- contador de calorías;
-- diario;
-- recordatorios.
+- calendar;
+- notes;
+- tasks;
+- habits;
+- calorie tracker;
+- journal;
+- reminders.
 
-La fragmentación provoca duplicación, falta de contexto y dificultad para convertir datos en decisiones.
+This fragmentation creates duplication, removes context, and makes it difficult to convert data into decisions.
 
-## 2. Propuesta
+## 2. Proposal
 
-PersonalOS unifica:
+PersonalOS unifies:
 
 ```text
-Captura -> Planificación -> Ejecución -> Registro -> Revisión -> Ajuste
+Capture -> Plan -> Execute -> Record -> Review -> Adjust
 ```
 
-El producto debe ser rápido, tranquilo y explicable. No debe convertirse en un ERP personal, un sistema punitivo ni una colección de gráficas sin acción.
+The product must be fast, calm, and explainable. It must not become a personal ERP, a punitive system, or a collection of charts without action.
 
-## 3. Usuario inicial
+## 3. Initial user
 
 Jefferson:
 
-- estudia y trabaja;
-- desarrolla software;
-- quiere organizar prioridades;
-- controla hábitos;
-- necesita gestionar calorías;
-- quiere registrar aprendizajes;
-- busca mejorar semanalmente;
-- utiliza el proyecto para aprender React.
+- studies and works;
+- develops software;
+- wants to organize priorities;
+- tracks habits;
+- needs to manage calories;
+- wants to record lessons learned;
+- wants to improve every week;
+- uses the project to gain practical Angular experience without abandoning .NET;
+- needs to explain the architecture and security decisions during interviews.
 
-## 4. Principios de producto
+## 4. Product principles
 
-1. Acción antes que decoración.
-2. Captura rápida.
-3. Tres prioridades antes que veinte tareas.
-4. Recuperación antes que culpa.
-5. Datos históricos honestos.
-6. Recomendaciones explicables.
-7. Privacidad por defecto.
-8. Accesibilidad.
-9. Control del usuario.
-10. Crecimiento incremental.
+1. Action before decoration.
+2. Fast capture.
+3. Three priorities before twenty tasks.
+4. Recovery before guilt.
+5. Honest historical data.
+6. Explainable recommendations.
+7. Privacy by default.
+8. Accessibility.
+9. User control.
+10. Incremental growth.
 
-## 5. Módulos
+## 5. Modules
 
-### Identidad
+### Identity
 
-- registro;
+- registration;
 - login;
 - logout;
-- usuario actual;
-- preferencias;
-- zona horaria.
+- current user;
+- preferences;
+- time zone.
 
-### Hoy
+### Today
 
-- fecha local;
-- próximos eventos;
-- tres prioridades;
-- tareas;
-- hábitos;
-- calorías;
-- captura rápida;
-- recomendación;
-- cierre diario.
+- local date;
+- upcoming events;
+- three priorities;
+- tasks;
+- habits;
+- calories;
+- quick capture;
+- recommendation;
+- daily close.
 
-### Planificación
+### Planning
 
-- tareas;
-- eventos;
-- proyectos;
-- metas;
-- fechas;
-- prioridades;
-- reprogramación.
+- tasks;
+- events;
+- projects;
+- goals;
+- dates;
+- priorities;
+- rescheduling.
 
-### Hábitos
+### Habits
 
-- frecuencia;
-- días;
-- check;
-- cantidad;
-- duración;
-- descanso;
-- motivo de incumplimiento;
-- consistencia;
-- recuperación.
+- frequency;
+- days;
+- completion check;
+- quantity;
+- duration;
+- rest;
+- reason for missing;
+- consistency;
+- recovery.
 
-### Nutrición
+### Nutrition
 
-- objetivos versionados;
-- comidas;
-- alimentos;
-- porciones;
-- calorías;
-- macronutrientes;
-- resumen diario y semanal.
+- versioned goals;
+- meals;
+- foods;
+- portions;
+- calories;
+- macronutrients;
+- daily and weekly summaries.
 
-### Diario
+### Journal
 
-- entrada libre;
-- reflexión matutina;
-- cierre nocturno;
-- victoria;
-- problema;
-- causa;
-- aprendizaje;
-- ajuste.
+- free-form entry;
+- morning reflection;
+- evening close;
+- win;
+- problem;
+- cause;
+- lesson;
+- adjustment.
 
-### Revisión semanal
+### Weekly review
 
-- plan frente a ejecución;
-- hábitos;
-- nutrición;
-- patrones;
-- experimento para la siguiente semana.
+- plan versus execution;
+- habits;
+- nutrition;
+- patterns;
+- experiment for the next week.
 
-### Recordatorios
+### Reminders
 
-- fecha y hora;
-- repetición;
-- posponer;
-- horario silencioso;
-- estado de entrega;
-- canal.
+- date and time;
+- recurrence;
+- snooze;
+- quiet hours;
+- delivery state;
+- channel.
 
-## 6. Experiencia diaria
+## 6. Daily experience
 
-### Inicio
+### Start of day
 
-- revisar agenda;
-- elegir tres prioridades;
-- ver hábitos;
-- revisar objetivo calórico;
-- definir intención.
+- review the schedule;
+- choose three priorities;
+- view habits;
+- review the calorie target;
+- define an intention.
 
-### Durante el día
+### During the day
 
-- captura rápida;
-- completar tareas;
-- registrar hábitos;
-- registrar comidas;
-- añadir notas.
+- capture quickly;
+- complete tasks;
+- record habits;
+- record meals;
+- add notes.
 
-### Cierre
+### Daily close
 
-- revisar resultados;
-- registrar lo bueno;
-- registrar lo difícil;
-- identificar causa;
-- definir ajuste;
-- preparar mañana.
+- review outcomes;
+- record what went well;
+- record what was difficult;
+- identify the cause;
+- define an adjustment;
+- prepare tomorrow.
 
-### Revisión semanal
+### Weekly review
 
-- comparar;
-- reconocer patrones;
-- elegir un experimento;
-- ajustar objetivos.
+- compare;
+- recognize patterns;
+- choose one experiment;
+- adjust goals.
 
-## 7. UX
+## 7. User experience
 
-Navegación futura:
+Future navigation:
 
 ```text
-Hoy
-Planificar
-Hábitos
-Nutrición
-Diario
-Revisión
-Configuración
+Today
+Plan
+Habits
+Nutrition
+Journal
+Review
+Settings
 ```
 
-Todo flujo debe contemplar:
+Every flow must consider:
 
 - loading;
 - empty;
@@ -192,139 +193,220 @@ Todo flujo debe contemplar:
 - validation;
 - conflict;
 - unauthorized;
+- forbidden;
 - rate limit;
 - server error;
-- offline cuando aplique.
+- offline, when applicable.
 
-Requisitos:
+Experience requirements:
 
-- teclado;
-- labels;
-- foco visible;
-- HTML semántico;
-- no depender solo del color;
-- mobile-first para captura;
-- desktop para análisis.
+- keyboard navigation;
+- explicit labels;
+- visible focus;
+- semantic HTML;
+- no meaning communicated through color alone;
+- mobile-first capture;
+- desktop-friendly analysis;
+- predictable navigation;
+- no flash of private content while authentication is unresolved;
+- clear distinction between unavailable features and empty data.
 
-## 8. Gamificación
+Angular implementation principles:
 
-Permitido:
+- standalone components;
+- feature-oriented organization;
+- lazy-loaded protected areas;
+- typed reactive forms;
+- signals for local and authentication state where appropriate;
+- HttpClient for API communication;
+- route guards for navigation only;
+- server-side authorization for every protected operation;
+- accessible loading and error feedback.
 
-- progreso;
-- consistencia;
-- recuperación;
-- niveles;
-- récords;
-- experimentos.
+## 8. Gamification
 
-No permitido:
+Allowed:
 
-- humillación;
-- castigo agresivo;
-- perder todo por un fallo;
-- premiar comer peligrosamente poco;
-- dark patterns.
+- progress;
+- consistency;
+- recovery;
+- levels;
+- records;
+- experiments.
 
-## 9. MVP
+Not allowed:
 
-El MVP completo incluye:
+- humiliation;
+- aggressive punishment;
+- losing all progress because of one failure;
+- rewarding dangerously low food intake;
+- dark patterns;
+- manipulative notifications;
+- hiding privacy or account controls.
 
-- cuenta segura;
-- Hoy;
-- tareas;
-- hábitos;
-- nutrición;
-- diario;
-- revisión;
-- tendencias;
-- exportación;
+## 9. Privacy and trust
+
+PersonalOS will process data that may reveal routines, health-related behavior, personal reflections, and future plans.
+
+Product rules:
+
+- collect only data needed by a defined feature;
+- never expose authentication secrets to the Angular application;
+- do not place sensitive information in URLs or query strings;
+- do not persist current-user or private API data in browser storage by default;
+- never show another user's data;
+- do not use private content as analytics metadata;
+- do not send sensitive notification content without user control;
+- explain recommendations and require approval before changing user data;
+- provide export and deletion paths before production maturity is claimed.
+
+## 10. MVP
+
+The complete MVP includes:
+
+- secure account;
+- Today;
+- tasks;
+- habits;
+- nutrition;
+- journal;
+- review;
+- trends;
+- export;
 - PWA.
 
-## 10. Fuera del MVP
+The MVP is delivered incrementally. A navigation placeholder does not mean that a module is implemented.
 
-- gestor de contraseñas;
-- consejo médico;
-- red social;
+## 11. Outside the MVP
+
+- password manager or vault;
+- medical advice;
+- social network;
 - marketplace;
-- microservicios;
+- microservices;
 - billing;
 - multi-tenancy;
-- aplicación nativa;
-- IA que modifique datos sin aprobación.
+- native mobile application;
+- AI that modifies data without approval.
 
-## 11. Roadmap
+A future vault is intentionally excluded because it requires a separate threat model, cryptographic design review, recovery strategy, and operational maturity.
 
-### M1 — Walking skeleton
+## 12. Roadmap
 
-- Identity;
-- cookies;
+### M1 - Secure walking skeleton
+
+- ASP.NET Core Identity;
+- server-managed authentication cookie;
 - antiforgery;
-- React protegido;
-- pruebas;
-- CI.
+- Angular authentication state;
+- login;
+- registration;
+- current user;
+- logout;
+- protected Angular routes;
+- application shell;
+- Today empty state;
+- Settings account summary;
+- Problem Details;
+- rate-limit handling;
+- accessibility baseline;
+- frontend and backend tests;
+- CI;
+- dependency auditing.
 
-### M2 — Perfil y tiempo
+### M2 - Profile and time
 
-- zona horaria;
-- fecha local;
-- reloj abstraído.
+- time zone;
+- local date;
+- abstract clock;
+- profile preferences;
+- deterministic time tests.
 
-### M3 — Planificación
+### M3 - Planning
 
-- tareas;
-- prioridades;
-- Hoy mínimo.
+- tasks;
+- priorities;
+- minimum Today workflow;
+- server-side ownership;
+- empty, conflict, and validation states.
 
-### M4 — Hábitos
+### M4 - Habits
 
-- definición;
-- registro;
-- consistencia.
+- definition;
+- recording;
+- consistency;
+- recovery;
+- historical integrity.
 
-### M5 — Nutrición
+### M5 - Nutrition
 
-- objetivos;
-- comidas;
-- calorías.
+- goals;
+- meals;
+- calories;
+- macronutrients;
+- safe boundaries and non-medical wording.
 
-### M6 — Diario
+### M6 - Journal
 
-- entradas;
-- cierre;
-- privacidad.
+- entries;
+- daily close;
+- privacy;
+- deliberate logging and caching restrictions.
 
-### M7 — Revisión
+### M7 - Review
 
-- agregados;
-- tendencias;
-- recomendaciones explicables.
+- aggregates;
+- trends;
+- explainable recommendations;
+- weekly experiment.
 
-### M8 — PWA y recordatorios
+### M8 - PWA and reminders
 
-- instalación;
-- offline;
+- installation;
+- limited offline support;
 - push;
-- scheduler.
+- scheduler;
+- private-data caching review;
+- quiet hours.
 
-### M9 — Hardening
+### M9 - Hardening
 
 - email confirmation;
-- recovery;
-- MFA/passkeys;
-- CSP;
+- account recovery;
+- MFA or passkeys;
+- production Content Security Policy;
+- Trusted Types evaluation;
+- security headers;
 - backup;
+- restore test;
 - staging;
-- observabilidad.
+- observability;
+- abuse monitoring;
+- production readiness review.
 
-## 12. Métricas futuras
+## 13. Future metrics
 
-- días activos;
-- cierres diarios;
-- tareas completadas;
-- hábitos registrados;
-- revisiones semanales;
-- tiempo de captura;
-- recomendaciones aceptadas;
-- uso continuo.
+- active days;
+- completed daily closes;
+- completed tasks;
+- recorded habits;
+- weekly reviews;
+- capture time;
+- accepted recommendations;
+- continued use.
 
-Las métricas no deben convertirse en castigo.
+Metrics must not become punishment. They must not expose private content, reward unhealthy behavior, or pressure the user into artificial engagement.
+
+## 14. Milestone acceptance philosophy
+
+A milestone is accepted only when:
+
+- its observable user outcome works;
+- private data remains protected;
+- server-side authorization is present;
+- loading, error, and empty states exist;
+- accessibility is reviewed;
+- negative security cases are tested;
+- builds and audits pass;
+- documentation describes the real implementation;
+- unfinished work is named honestly.

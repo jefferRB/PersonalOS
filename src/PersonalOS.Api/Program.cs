@@ -11,6 +11,9 @@ using PersonalOS.Api.Health;
 using PersonalOS.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+var secureCookiePolicy = builder.Environment.IsDevelopment()
+    ? CookieSecurePolicy.None
+    : CookieSecurePolicy.Always;
 
 builder.Services.AddProblemDetails(options =>
 {
@@ -54,9 +57,7 @@ builder.Services.AddAntiforgery(options =>
     options.Cookie.Name = "PersonalOS.Antiforgery";
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
-    options.Cookie.SecurePolicy = builder.Environment.IsProduction()
-        ? CookieSecurePolicy.Always
-        : CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SecurePolicy = secureCookiePolicy;
 });
 
 builder.Services.ConfigureApplicationCookie(options =>
@@ -64,9 +65,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.Name = "PersonalOS.Auth";
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
-    options.Cookie.SecurePolicy = builder.Environment.IsProduction()
-        ? CookieSecurePolicy.Always
-        : CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SecurePolicy = secureCookiePolicy;
     options.SlidingExpiration = true;
     options.Events = new CookieAuthenticationEvents
     {
@@ -100,6 +99,7 @@ builder.Services.AddRateLimiter(options =>
 
         httpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         httpContext.Response.ContentType = "application/problem+json";
+        SetNoStoreHeaders(httpContext.Response);
         await JsonSerializer.SerializeAsync(
             httpContext.Response.Body,
             problem,
@@ -126,6 +126,22 @@ builder.Services.AddAuthorization();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        var headers = context.Response.Headers;
+        headers["X-Content-Type-Options"] = "nosniff";
+        headers["Referrer-Policy"] = "no-referrer";
+        headers["X-Frame-Options"] = "DENY";
+        headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()";
+
+        return Task.CompletedTask;
+    });
+
+    await next();
+});
 
 app.UseExceptionHandler();
 
@@ -176,6 +192,7 @@ static Task WriteAuthenticationProblemAsync(
 
     httpContext.Response.StatusCode = statusCode;
     httpContext.Response.ContentType = "application/problem+json";
+    SetNoStoreHeaders(httpContext.Response);
 
     return JsonSerializer.SerializeAsync(httpContext.Response.Body, problem);
 }
@@ -188,6 +205,13 @@ static Task WriteHealthResponseAsync(HttpContext httpContext, HealthReport repor
     {
         status = report.Status.ToString(),
     });
+}
+
+static void SetNoStoreHeaders(HttpResponse response)
+{
+    response.Headers["Cache-Control"] = "no-store";
+    response.Headers["Pragma"] = "no-cache";
+    response.Headers["Expires"] = "0";
 }
 
 public partial class Program;

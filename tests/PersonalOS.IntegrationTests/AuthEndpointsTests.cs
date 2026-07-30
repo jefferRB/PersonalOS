@@ -194,6 +194,41 @@ public sealed class AuthEndpointsTests
     }
 
     [Fact]
+    public async Task Post_WithInvalidAntiforgeryToken_IsRejected()
+    {
+        await using var factory = new PersonalOSWebApplicationFactory();
+        using var client = CreateClient(factory);
+
+        await AddAntiforgeryHeaderAsync(client);
+        client.DefaultRequestHeaders.Remove("X-XSRF-TOKEN");
+        client.DefaultRequestHeaders.Add("X-XSRF-TOKEN", "invalid-request-token");
+
+        var response = await client.PostAsJsonAsync("/api/auth/register", NewRegisterRequest());
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
+    public async Task AntiforgeryToken_ReturnsAngularReadableCookieAndNoStoreHeaders()
+    {
+        await using var factory = new PersonalOSWebApplicationFactory();
+        using var client = CreateClient(factory);
+
+        var response = await client.GetAsync("/api/antiforgery/token");
+        var body = await response.Content.ReadFromJsonAsync<AntiforgeryTokenResponse>();
+        var requestTokenCookie = response.Headers.GetValues("Set-Cookie")
+            .Single(header => header.StartsWith("XSRF-TOKEN=", StringComparison.Ordinal));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(body);
+        Assert.False(string.IsNullOrWhiteSpace(body.RequestToken));
+        Assert.Contains("samesite=lax", requestTokenCookie, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("httponly", requestTokenCookie, StringComparison.OrdinalIgnoreCase);
+        Assert.True(response.Headers.CacheControl?.NoStore);
+    }
+
+    [Fact]
     public async Task UnauthenticatedApiRequest_Returns401WithoutHtmlRedirect()
     {
         await using var factory = new PersonalOSWebApplicationFactory();
@@ -206,6 +241,7 @@ public sealed class AuthEndpointsTests
         Assert.False(response.Headers.Location is not null);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
         Assert.DoesNotContain("<html", body, StringComparison.OrdinalIgnoreCase);
+        Assert.True(response.Headers.CacheControl?.NoStore);
     }
 
     [Fact]
@@ -223,6 +259,26 @@ public sealed class AuthEndpointsTests
         Assert.Contains("httponly", setCookie, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("samesite=lax", setCookie, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("expires=", setCookie, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task CurrentUserResponse_DoesNotExposeSensitiveIdentityFields()
+    {
+        await using var factory = new PersonalOSWebApplicationFactory();
+        using var client = CreateClient(factory);
+        var email = NewEmail();
+
+        await RegisterAsync(client, email);
+        await LoginAsync(client, email);
+
+        var response = await client.GetAsync("/api/auth/me");
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain("PasswordHash", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("SecurityStamp", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("ConcurrencyStamp", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("AccessFailedCount", body, StringComparison.OrdinalIgnoreCase);
     }
 
     private static HttpClient CreateClient(PersonalOSWebApplicationFactory factory) =>

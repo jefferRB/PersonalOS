@@ -1,18 +1,55 @@
-# PersonalOS — Instrucciones para agentes de código
+# PersonalOS - Coding Agent Instructions
 
-## 1. Leer antes de modificar
+## 1. Language rule
+
+Everything added or modified in this repository must be written in English:
+
+- source-code identifiers;
+- filenames and folders;
+- comments;
+- XML documentation;
+- tests;
+- logs and event names;
+- API contracts;
+- validation messages;
+- user-facing text;
+- accessibility labels;
+- Markdown documentation;
+- diagrams and examples.
+
+Do not introduce bilingual repository content.
+
+Do not rename framework-generated migration history or existing database objects only for cosmetic translation when that change creates migration risk. Report unavoidable legacy identifiers instead.
+
+## 2. Read before modifying
+
+Read in this order:
 
 1. `README.md`
 2. `docs/01_PRODUCT.md`
 3. `docs/02_ARCHITECTURE.md`
 4. `docs/03_DELIVERY.md`
-5. archivos afectados
+5. affected source and test files
 
-No resolver contradicciones silenciosamente.
+Do not resolve contradictions silently. Report the contradiction, determine which source reflects the real implementation, and update the documentation deliberately.
 
-## 2. Arquitectura obligatoria
+Always inspect:
 
-Proyectos:
+- current branch and `git status`;
+- `PersonalOS.slnx`;
+- project references;
+- Angular `package.json`;
+- `angular.json`;
+- TypeScript configuration;
+- API `launchSettings.json`;
+- authentication, antiforgery, CORS, rate limiting, Problem Details, and health configuration;
+- relevant tests.
+
+Use the Angular version that is actually installed. Do not assume APIs from another version.
+
+## 3. Mandatory architecture
+
+Projects:
 
 - `PersonalOS.Domain`
 - `PersonalOS.Application`
@@ -22,7 +59,7 @@ Proyectos:
 - `PersonalOS.UnitTests`
 - `PersonalOS.IntegrationTests`
 
-Dependencias permitidas:
+Allowed dependencies:
 
 ```text
 Application -> Domain
@@ -30,107 +67,258 @@ Infrastructure -> Application + Domain
 Api -> Application + Infrastructure
 UnitTests -> Domain + Application
 IntegrationTests -> Api + Infrastructure + Application
+Angular -> Api through HTTPS/JSON only
 ```
 
-No agregar referencias inversas ni circulares.
+Do not add reverse or circular references.
 
-## 3. Alcance actual
+Domain must not depend on:
 
-Primer incremento:
+- EF Core;
+- SQL Server;
+- ASP.NET Core;
+- Identity;
+- Angular;
+- HTTP.
 
-- EF Core y SQL Server;
+Angular must not access SQL Server or contain server secrets.
+
+## 4. Current scope
+
+The first increment includes:
+
+- EF Core and SQL Server;
 - ASP.NET Core Identity;
-- cookies HttpOnly;
+- HttpOnly authentication cookie;
 - antiforgery;
-- registro;
+- registration;
 - login;
-- usuario actual;
+- current user;
 - logout;
-- ruta React protegida;
-- dashboard provisional;
+- Angular authentication state;
+- protected Angular routes;
+- anonymous-only routes;
+- protected application shell;
+- Today empty state;
+- Settings account summary;
+- not-found page;
+- Problem Details;
+- rate-limit handling;
 - health checks;
-- pruebas;
-- CI.
+- accessibility baseline;
+- backend and frontend tests;
+- CI;
+- dependency audits.
 
-No implementar todavía:
+Do not implement yet:
 
-- tareas;
-- hábitos;
-- nutrición;
-- diario;
-- recordatorios;
+- task persistence;
+- habits;
+- nutrition;
+- journal;
+- reminders;
 - PWA;
-- IA;
-- vault;
-- Workspace;
+- push notifications;
+- AI recommendations;
+- password vault;
+- workspaces;
 - multi-tenancy;
 - billing;
-- roles comerciales.
+- commercial roles;
+- email confirmation;
+- account recovery;
+- MFA;
+- passkeys;
+- external login;
+- production deployment.
 
-## 4. Prohibido por defecto
+Do not create fake persisted data or fake analytics for unfinished modules.
 
-Sin aprobación explícita:
+## 5. Angular rules
 
-- microservicios;
+Use the conventions supported by the installed Angular version.
+
+Required defaults:
+
+- strict TypeScript;
+- standalone components;
+- no new NgModules;
+- feature-oriented folders;
+- lazy-loaded feature routes;
+- typed reactive forms;
+- `HttpClient`;
+- functional route guards;
+- functional interceptors;
+- signals for local or in-memory state where appropriate;
+- RxJS for HTTP and real streams;
+- relative `/api` URLs;
+- accessible semantic HTML;
+- SCSS already provided by the project.
+
+Do not:
+
+- use `any` without documented necessity;
+- install a global state-management package for authentication;
+- install a form library;
+- install an HTTP wrapper library;
+- hard-code Development ports in TypeScript;
+- use experimental APIs without justification and tests;
+- replace the configured test runner merely because another tool is familiar;
+- create abstractions with no current responsibility;
+- use guards as authorization.
+
+## 6. Prohibited by default
+
+Without explicit approval, do not introduce:
+
+- microservices;
 - event sourcing;
 - MediatR;
 - AutoMapper;
-- repositorio genérico;
-- Unit of Work artificial;
-- Redux;
-- Zustand;
-- JWT en localStorage/sessionStorage;
-- CORS permisivo;
-- criptografía propia;
-- migraciones automáticas en producción;
-- paquetes preview;
-- reestructuraciones masivas fuera de alcance.
+- generic repository;
+- artificial Unit of Work;
+- Redux, NgRx, or another global store;
+- JWT in `localStorage` or `sessionStorage`;
+- permissive CORS;
+- custom cryptography;
+- automatic production migrations;
+- preview packages;
+- mass restructuring outside scope;
+- a UI framework or icon package without a demonstrated need;
+- automatic Git commits;
+- direct merges into `main`.
 
-## 5. Seguridad
+## 7. Security
 
-Nunca versionar, registrar ni mostrar:
+Never commit, log, return, persist in browser storage, or display:
 
 - passwords;
-- cookies;
+- authentication cookies;
 - tokens;
 - antiforgery tokens;
-- connection strings con secretos;
+- authorization headers;
+- connection strings containing secrets;
 - User Secrets;
 - API keys;
-- contenido sensible del diario;
-- datos productivos reales.
+- security stamps;
+- password hashes;
+- sensitive journal content;
+- real production data.
 
-No eliminar la referencia directa segura de `Microsoft.OpenApi` sin comprobar que la vulnerabilidad transitiva continúa resuelta.
+Do not remove the direct safe `Microsoft.OpenApi` reference without verifying that the previously addressed transitive vulnerability remains resolved.
 
-## 6. Forma de trabajo
+### Authentication
 
-Antes de editar:
+- keep ASP.NET Core Identity;
+- keep server-managed cookie authentication;
+- authentication cookie must be HttpOnly;
+- production cookie must be Secure;
+- API returns 401 and 403, not HTML redirects;
+- `/api/auth/me` is the source of truth;
+- Angular keeps the current user in memory only;
+- logout clears all private frontend state.
 
-1. inspeccionar rama y repositorio;
-2. describir estado;
-3. identificar riesgos;
-4. presentar plan;
-5. listar archivos esperados.
+### Antiforgery
 
-Durante:
+- state-changing requests require antiforgery;
+- align Angular XSRF cookie and header names with ASP.NET Core;
+- do not disable protection on login or registration;
+- do not store the request token in browser storage;
+- test missing, invalid, and valid token behavior.
 
-1. mantener cambios pequeños;
-2. respetar alcance;
-3. actualizar pruebas y documentación;
-4. no hacer commits salvo petición;
-5. no afirmar éxito sin ejecutar.
+### XSS
 
-Después:
+Do not use untrusted data with:
 
-1. revisar `git diff`;
-2. ejecutar validaciones;
-3. reportar resultados exactos;
-4. declarar lo no verificado;
-5. listar riesgos pendientes.
+- `[innerHTML]`;
+- direct DOM injection;
+- `document.write`;
+- `eval`;
+- `new Function`;
+- dynamic template compilation;
+- Angular security-bypass APIs.
 
-## 7. Validación
+Render backend error content as text.
 
-Backend:
+### CORS
+
+Prefer the Angular Development proxy and same-origin production hosting.
+
+Never combine credentialed requests with any-origin CORS.
+
+### Authorization
+
+- enforce every protected operation on the server;
+- derive ownership from the authenticated principal;
+- never trust a client-supplied `UserId`;
+- test anonymous and cross-user access when resources exist.
+
+### Browser state
+
+Do not store:
+
+- JWTs;
+- current-user objects;
+- private API responses;
+- journal content;
+- nutrition history;
+- habit history.
+
+Angular environment files are public after compilation and must not contain secrets.
+
+### Dependencies
+
+Before adding a package:
+
+1. confirm the framework or browser does not already provide the capability;
+2. verify maintenance and framework compatibility;
+3. explain why it is needed;
+4. update the lockfile;
+5. run the audit.
+
+Do not run `npm audit fix --force`.
+
+## 8. Working method
+
+### Before editing
+
+1. inspect branch and repository status;
+2. describe the current state;
+3. run or record baseline validation;
+4. identify architecture and security risks;
+5. present a concise plan;
+6. list expected files;
+7. verify the requested work is inside the current milestone.
+
+### During implementation
+
+1. keep changes cohesive and reviewable;
+2. preserve working behavior;
+3. respect scope;
+4. update tests with behavior;
+5. update documentation with reality;
+6. use explicit contracts;
+7. keep authorization server-side;
+8. avoid unrelated upgrades;
+9. do not commit unless requested;
+10. do not claim success without execution.
+
+### After implementation
+
+1. review `git diff`;
+2. check for obsolete files and dependencies from the previous frontend when working on the Angular migration;
+3. execute validation;
+4. inspect the production Angular output for localhost URLs and accidental secrets;
+5. report exact results;
+6. disclose commands that failed or were not executed;
+7. list remaining risks;
+8. provide a manual verification guide;
+9. provide an educational explanation;
+10. ask a milestone quiz without supplying answers.
+
+## 9. Validation
+
+### Backend
 
 ```powershell
 dotnet restore .\PersonalOS.slnx
@@ -139,27 +327,93 @@ dotnet test .\PersonalOS.slnx --no-build
 dotnet package list --project .\PersonalOS.slnx --vulnerable --include-transitive
 ```
 
-Frontend:
+### Frontend
+
+Use the scripts defined in `web/PersonalOS.Web/package.json`.
+
+Target gate:
 
 ```powershell
 npm --prefix .\web\PersonalOS.Web ci
 npm --prefix .\web\PersonalOS.Web run lint
-npm --prefix .\web\PersonalOS.Web run test -- --run
+npm --prefix .\web\PersonalOS.Web run test -- --watch=false
 npm --prefix .\web\PersonalOS.Web run build
 npm --prefix .\web\PersonalOS.Web audit --audit-level=high
 ```
 
-Si un script aún no existe, indicarlo.
+Use the installed test runner's supported non-watch argument.
 
-## 8. Finalización
+If a required script does not exist, report it or add it deliberately. Never state that it passed when it was not available.
 
-Una tarea queda terminada solo si:
+Do not use `npm audit fix --force`.
 
-- cumple criterios;
-- respeta arquitectura;
-- incluye pruebas;
-- no introduce secretos;
-- actualiza documentación;
-- pasa builds y auditorías;
-- el diff fue revisado;
-- no se fusionó directamente en `main`.
+## 10. Test expectations
+
+Tests must cover behavior and risk rather than file creation.
+
+Important frontend cases:
+
+- authentication loading;
+- current-user success;
+- anonymous 401;
+- login and registration validation;
+- registration without automatic login;
+- guard redirects;
+- logout cleanup;
+- Problem Details;
+- rate limiting;
+- antiforgery;
+- absence of browser-stored authentication;
+- keyboard or focus behavior.
+
+Important backend cases:
+
+- registration;
+- duplicate user;
+- invalid login;
+- lockout;
+- `/me`;
+- logout;
+- antiforgery rejection and success;
+- 401 and 403 without HTML redirect;
+- safe cookie configuration;
+- safe Problem Details;
+- health checks;
+- no sensitive Identity fields in responses.
+
+A SQLite integration host does not prove that SQL Server migrations are valid.
+
+## 11. Completion
+
+A task is complete only when:
+
+- acceptance criteria are satisfied;
+- scope is respected;
+- architecture is preserved;
+- authorization remains server-side;
+- security risks are reviewed;
+- tests cover relevant behavior;
+- no secrets are introduced;
+- documentation is updated;
+- builds and audits pass or failures are disclosed;
+- the diff is reviewed;
+- no direct merge into `main` occurred;
+- no automatic commit occurred.
+
+## 12. Required final report
+
+The final response for a substantial implementation must include:
+
+1. initial audit;
+2. implementation plan;
+3. architecture implemented;
+4. important files changed;
+5. security review covering XSS, CSRF, cookies, storage, CORS, authorization, dependencies, logs, and caching;
+6. exact validation commands and results;
+7. manual test instructions;
+8. known limitations;
+9. Angular learning explanation;
+10. interview-ready explanation;
+11. quiz questions without answers.
+
+Do not hide failures. Do not describe code as secure merely because it compiles.

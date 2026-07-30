@@ -1,25 +1,26 @@
-# PersonalOS — Arquitectura, seguridad y datos
+# PersonalOS - Architecture, Security, and Data
 
-**Versión:** 1.0  
-**Estado:** Baseline
+**Version:** 1.1
+**Status:** Milestone 1 Angular walking skeleton
 
 ## 1. Drivers
 
-- aprender React sin abandonar .NET;
-- entregar valor personal temprano;
-- proteger datos sensibles;
-- mantener bajo costo;
-- permitir pruebas;
-- evitar sobrearquitectura;
-- conservar una ruta posible hacia SaaS.
+- learn Angular without abandoning .NET;
+- deliver personal value early;
+- protect sensitive data;
+- keep operating cost low;
+- support automated testing;
+- avoid overengineering;
+- preserve a possible path toward SaaS;
+- create an architecture that can be explained and defended during interviews.
 
-## 2. Estilo arquitectónico
+## 2. Architectural style
 
-Monolito modular con frontend React separado.
+PersonalOS is a modular monolith with a separate Angular single-page application.
 
 ```mermaid
 flowchart LR
-    WEB[React SPA] -->|JSON + Cookie| API[ASP.NET Core API]
+    WEB[Angular SPA] -->|HTTPS + JSON + Cookie| API[ASP.NET Core API]
     API --> APP[Application]
     API --> INFRA[Infrastructure]
     APP --> DOMAIN[Domain]
@@ -28,130 +29,263 @@ flowchart LR
     INFRA --> DB[(SQL Server)]
 ```
 
-## 3. Capas
+The frontend and backend are separate projects, but they form one product and one security boundary. A same-origin deployment is preferred.
+
+The system does not introduce microservices, multi-tenancy, billing, or a generic repository during the initial milestones.
+
+## 3. Layers
 
 ### Domain
 
-Contiene:
+Contains:
 
-- entidades;
+- entities;
 - value objects;
-- invariantes;
-- reglas puras.
+- invariants;
+- pure business rules.
 
-No conoce EF Core, SQL Server, ASP.NET Core, Identity, React o HTTP.
+Domain does not know about EF Core, SQL Server, ASP.NET Core, Identity, Angular, TypeScript, or HTTP.
 
 ### Application
 
-Contiene:
+Contains:
 
-- casos de uso;
-- contratos;
-- políticas;
-- DTO internos;
-- abstracciones como reloj y usuario actual.
+- use cases;
+- contracts;
+- policies;
+- internal DTOs;
+- abstractions such as clock and current user;
+- application-level authorization decisions when they are independent of transport.
 
-Depende solo de Domain.
+Application depends only on Domain.
 
 ### Infrastructure
 
-Contiene:
+Contains:
 
 - EF Core;
 - SQL Server;
-- Identity;
-- servicios externos;
-- workers;
-- almacenamiento.
+- ASP.NET Core Identity persistence;
+- external services;
+- background workers;
+- storage implementations.
 
-Depende de Application y Domain.
+Infrastructure depends on Application and Domain.
 
 ### API
 
-Contiene:
+Contains:
 
-- endpoints;
-- autenticación;
-- autorización;
+- HTTP endpoints;
+- authentication;
+- authorization;
 - antiforgery;
-- ProblemDetails;
+- Problem Details;
 - rate limiting;
 - OpenAPI;
-- health;
+- health checks;
+- security headers;
 - composition root.
 
-### React
+API depends on Application and Infrastructure.
 
-Contiene:
+The API never exposes EF Core entities or Identity entities directly as public contracts.
 
-- páginas;
-- componentes;
+### Angular
+
+Contains:
+
+- pages and feature components;
+- templates;
 - routing;
-- server state;
-- formularios;
-- estados visuales.
+- authentication state;
+- typed reactive forms;
+- HTTP communication;
+- loading, empty, success, and error states;
+- accessibility behavior;
+- application shell and responsive navigation.
 
-No accede directamente a SQL Server.
+Angular communicates only with the API. It never accesses SQL Server and never receives password hashes, security stamps, cookies, connection strings, or server secrets.
 
-## 4. MVC → React
+## 4. MVC to Angular mapping
 
-| MVC conocido | PersonalOS |
+| Familiar MVC concept | PersonalOS Angular equivalent |
 |---|---|
-| Razor View | React Component |
-| Partial View | componente reutilizable |
-| `_Layout.cshtml` | App Shell/Layout |
-| ViewModel | DTO C# + type TypeScript |
-| Controller con View | API con JSON |
-| ModelState | validación server + Zod |
-| Form POST | mutation con fetch |
-| TempData | query invalidation/toast |
-| Session | cookie + `/api/auth/me` |
-| antiforgery form | token + header |
-| RedirectToAction | navegación cliente |
-| EF entity en vista | DTO |
+| Razor View | Angular component template |
+| Partial View | Reusable standalone component |
+| `_Layout.cshtml` | Application shell with `router-outlet` |
+| ViewModel | Explicit API DTO plus TypeScript interface or type |
+| Controller returning View | API endpoint returning JSON |
+| ModelState | Server validation plus typed reactive-form validation |
+| Form POST | HttpClient command request |
+| TempData | Navigation state or in-memory notification state |
+| Session lookup | Authentication cookie plus `/api/auth/me` |
+| Antiforgery form token | XSRF request token plus header |
+| `RedirectToAction` | Angular Router navigation |
+| EF entity rendered in a view | Purpose-built response DTO |
+| Dependency injection | Angular `inject()` and ASP.NET Core DI |
+| Action filter | API filter, middleware, or endpoint policy |
+| Authorization attribute | Server authorization policy; guard only improves UX |
 
-Conceptos React:
+## 5. Angular concepts and boundaries
 
-- props: entradas explícitas;
-- estado local: interacción del componente;
-- server state: datos remotos con TanStack Query;
-- render: debe ser puro;
-- effect: sincronización con sistemas externos;
-- mutation: POST/PUT/PATCH/DELETE;
-- route guard: mejora UX, no reemplaza autorización.
+### Standalone components
 
-## 5. Datos
+The Angular application uses standalone components and does not introduce NgModules for new code.
 
-Convenciones:
+A component should own:
 
-- `Guid` para claves;
-- `UserId` para ownership inicial;
-- `DateTimeOffset` UTC para instantes;
-- `DateOnly` para día local;
-- zona horaria IANA;
-- restricciones únicas para invariantes;
-- índices según consultas reales;
-- objetivos históricos versionados.
+- one clear user-facing responsibility;
+- its template;
+- its styles;
+- local interaction state.
 
-No usar `DateTime.Now` directamente en reglas que deban probarse.
+Large components must be split by responsibility rather than by arbitrary line count.
 
-## 6. Identity
+### Templates
 
-Primera versión:
+Templates must:
+
+- use semantic HTML;
+- use Angular interpolation for text;
+- avoid business logic;
+- avoid unsafe HTML rendering;
+- use the control-flow syntax supported by the installed Angular version;
+- expose loading and error states clearly.
+
+Backend-provided strings are treated as plain text.
+
+### Signals
+
+Signals are appropriate for:
+
+- local UI state;
+- authentication status;
+- current user held in memory;
+- derived view state.
+
+Computed signals are used for derived values. Effects are reserved for synchronization with external systems and must not become a default replacement for explicit flow.
+
+### RxJS
+
+RxJS remains appropriate for:
+
+- HttpClient requests;
+- cancellation and composition of asynchronous operations;
+- router events;
+- streams that naturally produce multiple values.
+
+The project does not convert every observable into a signal without a reason.
+
+### Services and dependency injection
+
+Services isolate responsibilities such as:
+
+- authentication operations;
+- current authentication state;
+- Problem Details parsing;
+- cross-cutting HTTP behavior.
+
+Services must not become global bags of unrelated behavior.
+
+### HttpClient
+
+Angular uses `HttpClient` with strongly typed contracts.
+
+Rules:
+
+- use relative `/api` URLs;
+- do not hard-code Development ports in TypeScript;
+- do not create a generic wrapper that hides all HttpClient behavior;
+- never retry login, registration, logout, or other non-idempotent requests blindly;
+- expected `/api/auth/me` 401 responses represent anonymous state, not a global application error.
+
+### Route guards
+
+Functional guards:
+
+- prevent unnecessary navigation;
+- avoid showing protected pages to anonymous users;
+- redirect authenticated users away from login and registration.
+
+Guards are not security boundaries. The API must authorize every protected endpoint.
+
+### HTTP interceptors
+
+Functional interceptors are limited to cross-cutting concerns such as:
+
+- consistent error normalization;
+- correlation metadata when approved;
+- authentication-loss handling;
+- XSRF behavior when Angular's built-in support is not sufficient.
+
+Feature-specific error messages remain inside their feature.
+
+### Typed reactive forms
+
+Login and registration use typed reactive forms.
+
+Client validation improves user experience. Server validation remains authoritative.
+
+Forms must:
+
+- prevent duplicate submissions;
+- preserve accessibility associations;
+- never log values;
+- use generic authentication errors;
+- map safe validation errors to controls;
+- keep unknown errors in a form-level summary.
+
+### Server state
+
+The current authenticated user is server state.
+
+Startup flow:
+
+```text
+Angular starts
+-> authentication state is unknown/loading
+-> GET /api/auth/me
+-> 200: authenticated in-memory state
+-> 401: anonymous state
+```
+
+The application does not persist the current user or an authentication token in browser storage.
+
+## 6. Data
+
+Conventions:
+
+- `Guid` for keys;
+- `UserId` for initial ownership;
+- `DateTimeOffset` in UTC for instants;
+- `DateOnly` for a local calendar day;
+- IANA time-zone identifiers;
+- unique constraints for invariants;
+- indexes based on real query patterns;
+- versioned historical goals;
+- explicit concurrency decisions for mutable data.
+
+Do not use `DateTime.Now` directly in business rules that must be tested.
+
+Client-provided identifiers never prove ownership. Protected queries derive the authenticated user from the server principal and scope data by that user.
+
+## 7. Identity and authentication
+
+Initial identity model:
 
 - `AppUser : IdentityUser<Guid>`;
 - `IdentityRole<Guid>`;
 - `DisplayName`;
 - `CreatedAtUtc`;
-- email único;
+- unique email behavior;
 - lockout;
 - security stamp;
-- cookie `PersonalOS.Auth`;
+- authentication cookie named `PersonalOS.Auth`;
 - `HttpOnly`;
-- `SameSite=Lax`;
-- `Secure` en producción;
-- 401/403 para API;
-- no redirect HTML.
+- intentional `SameSite` policy;
+- `Secure` outside Development;
+- API returns 401 or 403 instead of HTML redirects.
 
 Endpoints:
 
@@ -163,118 +297,286 @@ GET  /api/auth/me
 GET  /api/antiforgery/token
 ```
 
-No implementar todavía:
+Milestone 1 does not implement:
 
-- confirmación de correo;
-- recuperación;
+- email confirmation;
+- account recovery;
 - MFA;
 - passkeys;
 - external login.
 
-## 7. Antiforgery
+The server authentication cookie is never exposed to Angular. Angular does not create, parse, mirror, or store a JWT.
 
-Con cookies existe riesgo CSRF.
+## 8. Antiforgery and CSRF
 
-Flujo:
+Cookie authentication creates CSRF risk because the browser may send cookies automatically.
+
+Preferred same-origin flow:
 
 ```text
-React solicita token
--> API crea cookie antiforgery
--> React recibe request token
--> POST/PUT/PATCH/DELETE envían X-XSRF-TOKEN
--> API valida
+Angular requests /api/antiforgery/token
+-> API creates its internal antiforgery cookie
+-> API exposes only the request token through the agreed XSRF mechanism
+-> Angular sends X-XSRF-TOKEN on POST, PUT, PATCH, and DELETE
+-> API validates the token pair
 ```
 
-No usar CORS permisivo.
+Recommended compatibility names:
 
-## 8. Seguridad
+```text
+Readable request-token cookie: XSRF-TOKEN
+Request header: X-XSRF-TOKEN
+```
 
-Clasificación:
+The readable XSRF cookie is not the authentication cookie and contains no identity or session data.
 
-| Dato | Nivel |
+Rules:
+
+- GET, HEAD, and OPTIONS do not require antiforgery validation;
+- authentication-changing and data-changing requests do require it;
+- the request token is never stored in `localStorage` or `sessionStorage`;
+- missing or invalid tokens return sanitized Problem Details;
+- integration tests prove rejection without the token and success with it;
+- antiforgery must not be disabled on login or registration merely for convenience.
+
+## 9. CORS and origin strategy
+
+A same-origin architecture is preferred:
+
+- Angular uses relative `/api` and `/health` URLs;
+- the Angular Development proxy forwards to the HTTPS API;
+- production serves the SPA and API from one trusted site when practical.
+
+When same-origin proxying is used, unnecessary CORS is not enabled.
+
+If CORS becomes genuinely necessary:
+
+- allow explicit known origins only;
+- allow credentials only with explicit origins;
+- never combine credentials with any-origin behavior;
+- restrict methods and headers;
+- configure production origins outside source code;
+- fail closed when the configuration is missing.
+
+CORS does not replace antiforgery.
+
+## 10. Security model
+
+### Data classification
+
+| Data | Classification |
 |---|---|
-| perfil | Personal |
-| tareas/hábitos | Sensible |
-| nutrición | Sensible |
-| diario | Altamente sensible |
-| cookie/secretos | Crítico |
-| vault futuro | Crítico extremo |
+| profile | Personal |
+| tasks and habits | Sensitive |
+| nutrition | Sensitive |
+| journal | Highly sensitive |
+| authentication cookie and secrets | Critical |
+| future vault | Extreme criticality |
 
-Amenazas principales:
+### Main threats
 
-- robo de sesión;
+- session theft;
 - CSRF;
 - XSS;
 - brute force;
-- enumeración;
-- acceso cruzado;
+- account enumeration;
+- cross-user access;
 - secret leakage;
-- logs sensibles;
-- dependencia vulnerable;
-- backup expuesto;
-- notificación sensible;
-- duplicación de jobs;
-- tiempo incorrecto.
+- sensitive logs;
+- vulnerable npm or NuGet dependency;
+- exposed backup;
+- sensitive notification content;
+- duplicate jobs;
+- incorrect time-zone handling;
+- private browser caching;
+- source-map or bundle leakage;
+- permissive CORS;
+- trusting frontend route protection.
 
-Controles:
+### Main controls
 
 - HTTPS;
-- HttpOnly;
+- HttpOnly authentication cookie;
+- Secure production cookie;
 - antiforgery;
-- lockout;
+- Identity lockout;
+- rate limiting;
+- server-side authorization;
+- server-side ownership filters;
+- parameterized EF Core queries;
+- external secrets;
+- package auditing;
+- safe logs;
+- negative security tests;
+- explicit browser-state rules;
+- no-store responses where appropriate;
+- security-header review;
+- backup and restore controls before production.
+
+## 11. XSS and browser security
+
+Angular interpolation and template binding are the default output mechanisms.
+
+Prohibited without an explicit security review:
+
+- rendering user or API data through `[innerHTML]`;
+- direct DOM injection;
+- `document.write`;
+- `eval`;
+- `new Function`;
+- dynamic template compilation;
+- `bypassSecurityTrustHtml`;
+- `bypassSecurityTrustScript`;
+- `bypassSecurityTrustUrl`;
+- rendering Problem Details as HTML;
+- concatenating untrusted values into executable URLs.
+
+Security headers should include, where compatible with the hosting model:
+
+- `X-Content-Type-Options`;
+- `Referrer-Policy`;
+- frame-embedding protection;
+- an intentionally restricted `Permissions-Policy`.
+
+A production Content Security Policy and Trusted Types evaluation belong to hardening. They must be validated against the actual Angular build and hosting model. Broad `unsafe-*` directives must not be added merely to silence browser errors.
+
+CSP supplements safe Angular coding; it does not replace it.
+
+## 12. Browser state and caching
+
+The frontend may hold current-user state in memory.
+
+The frontend must not persist:
+
+- authentication tokens;
+- authentication cookies;
+- antiforgery tokens;
+- current-user objects;
+- private API responses;
+- journal content;
+- nutrition or habit history.
+
+Additional rules:
+
+- do not place personal data in query strings;
+- do not expose server secrets through Angular environment files;
+- remember that environment values are public after compilation;
+- clear private in-memory state after logout and authentication loss;
+- do not cache authenticated API responses in a service worker;
+- use `Cache-Control: no-store` for authentication and antiforgery responses where appropriate;
+- inspect production output for localhost URLs and accidental secrets.
+
+Non-sensitive visual preferences may be considered later, but are not part of Milestone 1.
+
+## 13. Authorization
+
+Every protected API endpoint enforces authorization on the server.
+
+For user-owned resources:
+
+- derive the user identifier from the authenticated principal;
+- never accept a client `UserId` as proof of ownership;
+- scope database queries by the authenticated user;
+- use 404 instead of revealing another user's resource when appropriate;
+- test anonymous, forbidden, and cross-user access;
+- never depend on an Angular guard to protect data.
+
+## 14. Error contracts
+
+API errors use `application/problem+json`.
+
+Responses must not expose:
+
+- stack traces;
+- SQL;
+- internal type names;
+- file paths;
+- connection details;
+- secrets;
+- password-policy internals that enable enumeration;
+- sensitive request bodies.
+
+Angular models Problem Details explicitly and safely handles responses that are not valid Problem Details.
+
+Important categories:
+
+- validation;
+- unauthorized;
+- forbidden;
+- conflict;
 - rate limit;
-- ownership server-side;
-- EF parametrizado;
-- secretos externos;
-- auditoría de paquetes;
-- logs seguros;
-- pruebas negativas.
+- server error.
 
-## 9. Logging
+Expected `/api/auth/me` 401 responses are converted to anonymous state without a generic error notification.
 
-Permitido:
+## 15. Logging
+
+Allowed:
 
 - timestamp;
-- route;
+- route template;
 - status;
 - duration;
-- event id;
-- trace id;
-- user id cuando sea necesario.
+- event identifier;
+- trace identifier;
+- user identifier only when necessary and proportionate.
 
-Prohibido:
+Forbidden:
 
 - password;
 - cookie;
 - token;
-- antiforgery;
+- antiforgery token;
 - authorization header;
 - connection string;
-- diario;
-- datos personales innecesarios.
+- journal content;
+- complete authentication request body;
+- unnecessary personal data.
 
-## 10. Persistencia
+Logs must use structured events and safe message templates.
+
+## 16. Persistence
 
 - `ApplicationDbContext`;
-- migraciones en Infrastructure;
-- no `EnsureCreated`;
-- no migraciones automáticas en producción;
-- revisar SQL generado;
-- probar base vacía;
-- probar upgrade;
-- backup antes de cambios destructivos.
+- migrations live in Infrastructure;
+- no `EnsureCreated` in normal application startup;
+- no automatic production migrations;
+- review generated SQL;
+- test a clean database;
+- test supported upgrades;
+- create a backup before destructive changes.
 
-No usar repositorio genérico.
+A generic repository is not used because EF Core already provides unit-of-work and repository-like behavior, and feature-specific queries are clearer.
 
-## 11. SaaS futuro
+Integration tests may use SQLite for fast HTTP behavior, but they do not prove that SQL Server migrations are valid.
 
-Situación inicial:
+## 17. Dependency security
+
+Before adding a package:
+
+1. confirm Angular, .NET, or the browser does not already provide the capability;
+2. verify compatibility with the pinned framework version;
+3. justify the package;
+4. update the lockfile;
+5. run the dependency audit.
+
+Rules:
+
+- do not run forced audit fixes;
+- do not add preview packages by default;
+- do not perform unrelated major upgrades;
+- zero known High or Critical vulnerabilities is the delivery target;
+- any temporary exception records package, dependency path, affected code path, mitigation, and planned fix.
+
+## 18. Future SaaS evolution
+
+Initial situation:
 
 ```text
-AppUser -> recursos mediante UserId
+AppUser -> resources through UserId
 ```
 
-Evolución posible:
+Possible evolution:
 
 ```mermaid
 erDiagram
@@ -283,33 +585,38 @@ erDiagram
     WORKSPACE ||--o{ RESOURCE : owns
 ```
 
-Solo introducir cuando existan usuarios externos, colaboración, roles, sharing, voluntad de pago y capacidad operativa.
+Introduce this only when there are external users, collaboration, roles, sharing, willingness to pay, and sufficient operational capacity.
 
-Antes de SaaS se debe decidir:
+Before SaaS, decide:
 
-- aislamiento;
-- autorización;
-- migración;
-- invitaciones;
+- isolation;
+- authorization;
+- migration;
+- invitations;
 - roles;
 - billing;
-- auditoría;
-- cache;
+- auditing;
+- caching;
 - storage;
 - backups;
-- jobs tenant-aware.
+- tenant-aware jobs.
 
-> Diseñar para no bloquear SaaS no significa construir SaaS antes de tener clientes.
+> Designing so SaaS remains possible does not mean building SaaS before there are customers.
 
-## 12. Decisiones aceptadas
+## 19. Accepted decisions
 
-1. Monolito modular.
-2. React SPA + ASP.NET Core API.
-3. Identity + cookies same-origin.
-4. SQL Server + EF Core.
-5. UserId como ownership inicial.
-6. No multi-tenancy prematuro.
-7. No microservicios.
-8. No repositorio genérico.
-9. No JWT en localStorage.
-10. Documentación mínima y viva.
+1. Modular monolith.
+2. Angular SPA plus ASP.NET Core API.
+3. ASP.NET Core Identity with same-origin cookies.
+4. Antiforgery on state-changing requests.
+5. SQL Server plus EF Core.
+6. `UserId` as initial ownership.
+7. No premature multi-tenancy.
+8. No microservices.
+9. No generic repository.
+10. No JWT in `localStorage` or `sessionStorage`.
+11. No permissive CORS.
+12. Authentication state is loaded from `/api/auth/me`.
+13. Frontend guards never replace server authorization.
+14. English-only repository content.
+15. Minimal, living documentation.

@@ -1,12 +1,12 @@
-En este archivo se explica cómo Visual Studio creado el proyecto.
+# PersonalOS.Web Project Notes
 
-Se usaron las siguientes herramientas para generar este proyecto:
-- create-vite
+This Angular project was generated for the PersonalOS web client and then adapted for the Milestone 1 authentication walking skeleton.
 
-Los pasos siguientes se usaron para generar este proyecto:
-- Cree un proyecto de React con create-vite: `npm init --yes vite@latest personalos.web -- --template=react-ts  --no-rolldown --no-immediate`.
-- Actualizando `vite.config.ts` con puerto.
-- Crear archivo de proyecto (`personalos.web.esproj`).
-- Crear `launch.json` para habilitar la depuración.
-- Agregue el proyecto a la solución.
-- Escriba este archivo.
+Generation and migration notes:
+
+- Created an Angular project with Angular CLI 22.1.0.
+- Kept the Visual Studio JavaScript project file for local IDE integration.
+- Converted the generated module-based shell to standalone Angular bootstrap.
+- Added the Angular development proxy for `/api` and `/health` to the API HTTPS launch profile.
+- Replaced generated placeholder UI with the PersonalOS authentication flow, protected shell, Today page, Settings page, and not-found route.
+- Kept tests on the Angular CLI unit-test builder with Vitest.

@@ -1,0 +1,14 @@
+@if (isStartupLoading()) {
+  <main class="startup" aria-busy="true" aria-live="polite">
+    <div class="startup__mark" aria-hidden="true">
+      <svg viewBox="0 0 48 48" role="img">
+        <path d="M24 5 39 13.5v17L24 39 9 30.5v-17L24 5Z" />
+        <path d="M18 23.5 22.2 27.7 31 18.9" />
+      </svg>
+    </div>
+    <p class="startup__brand">PersonalOS</p>
+    <h1>Checking your secure session</h1>
+  </main>
+} @else {
+  <router-outlet />
+}

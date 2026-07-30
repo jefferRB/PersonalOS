@@ -9,6 +9,7 @@ namespace PersonalOS.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
+[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class AuthController(
     UserManager<AppUser> userManager,
     SignInManager<AppUser> signInManager,

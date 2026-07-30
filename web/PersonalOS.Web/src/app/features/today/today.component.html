@@ -1,0 +1,58 @@
+<section class="today" aria-labelledby="today-title">
+  <div class="today__header">
+    <p class="today__date">{{ localDate }}</p>
+    <h1 id="today-title">Good day, {{ currentUser()?.displayName }}.</h1>
+    <p>
+      Milestone 1 gives PersonalOS a protected home, secure session awareness, and the
+      first honest empty state for the future daily workflow.
+    </p>
+  </div>
+
+  <section class="empty-state" aria-labelledby="empty-state-title">
+    <div class="empty-state__icon" aria-hidden="true">
+      <svg viewBox="0 0 48 48">
+        <path d="M10 12h28v24H10z" />
+        <path d="M16 20h16M16 27h10M18 8v8M30 8v8" />
+      </svg>
+    </div>
+    <div>
+      <h2 id="empty-state-title">Today is ready for real data.</h2>
+      <p>
+        Tasks, habits, nutrition, journal entries, reminders, and analytics are intentionally
+        not implemented yet. This page stays useful without inventing records.
+      </p>
+    </div>
+  </section>
+
+  <section class="workflow" aria-labelledby="workflow-title">
+    <div class="workflow__heading">
+      <h2 id="workflow-title">Capture -> Plan -> Execute -> Record -> Review -> Adjust</h2>
+      <p>
+        The first screen frames the product loop while the backend remains focused on
+        account, session, antiforgery, and health behavior.
+      </p>
+    </div>
+
+    <ol class="workflow__list">
+      @for (stage of workflow; track stage.name) {
+        <li>
+          <span>{{ stage.name }}</span>
+          <p>{{ stage.description }}</p>
+        </li>
+      }
+    </ol>
+  </section>
+
+  <section class="next-step" aria-labelledby="settings-link-title">
+    <div>
+      <h2 id="settings-link-title">Account context</h2>
+      <p>Settings shows only the account details returned by the current-user endpoint.</p>
+    </div>
+    <a class="button button--secondary" routerLink="/app/settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 18l6-6-6-6" />
+      </svg>
+      <span>Open settings</span>
+    </a>
+  </section>
+</section>

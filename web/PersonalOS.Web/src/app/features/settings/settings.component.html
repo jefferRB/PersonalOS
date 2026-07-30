@@ -1,0 +1,49 @@
+<section class="settings" aria-labelledby="settings-title">
+  <div class="settings__header">
+    <p class="settings__eyebrow">Account</p>
+    <h1 id="settings-title">Settings</h1>
+    <p>
+      Authentication is handled by the ASP.NET Core API through a secure server session.
+      Angular keeps only the current account summary in memory.
+    </p>
+  </div>
+
+  <section class="account-summary" aria-labelledby="account-summary-title">
+    <h2 id="account-summary-title">Account summary</h2>
+    <dl>
+      <div>
+        <dt>Display name</dt>
+        <dd>{{ currentUser()?.displayName }}</dd>
+      </div>
+      <div>
+        <dt>Email</dt>
+        <dd>{{ currentUser()?.email }}</dd>
+      </div>
+      <div>
+        <dt>Session</dt>
+        <dd>Server-managed cookie session</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="session-note" aria-labelledby="session-note-title">
+    <h2 id="session-note-title">Session privacy</h2>
+    <p>
+      This page does not display cookies, tokens, claims, security stamps, password hashes,
+      or internal authentication values. Reloading the app asks `/api/auth/me` for the
+      session status again.
+    </p>
+    <button
+      class="button button--secondary"
+      type="button"
+      [disabled]="isLoggingOut()"
+      [attr.aria-busy]="isLoggingOut()"
+      (click)="logout()"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M10 17l5-5-5-5M15 12H3M21 4v16h-6" />
+      </svg>
+      <span>{{ isLoggingOut() ? 'Signing out' : 'Sign out' }}</span>
+    </button>
+  </section>
+</section>

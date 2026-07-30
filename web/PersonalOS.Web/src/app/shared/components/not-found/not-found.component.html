@@ -1,0 +1,16 @@
+<main class="not-found" aria-labelledby="not-found-title">
+  <div class="not-found__mark" aria-hidden="true">
+    <svg viewBox="0 0 48 48">
+      <path d="M24 5 39 13.5v17L24 39 9 30.5v-17L24 5Z" />
+      <path d="M18 18h12M18 30h12" />
+    </svg>
+  </div>
+  <p class="not-found__brand">PersonalOS</p>
+  <h1 id="not-found-title">Page not found</h1>
+  <p>The route does not match a PersonalOS screen in this milestone.</p>
+  @if (isAuthenticated()) {
+    <a class="button button--primary" routerLink="/app/today">Go to Today</a>
+  } @else {
+    <a class="button button--primary" routerLink="/login">Go to login</a>
+  }
+</main>
