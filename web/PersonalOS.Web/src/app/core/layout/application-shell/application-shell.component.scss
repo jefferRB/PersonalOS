@@ -31,7 +31,7 @@
   align-content: start;
   gap: var(--space-6);
   border-right: 1px solid var(--color-border);
-  background: #f0f4ef;
+  background: var(--sidebar-background);
   padding: var(--space-5);
 }
 
@@ -61,7 +61,7 @@
 
 .nav-link:hover,
 .nav-link--active {
-  background: var(--color-surface);
+  background: var(--surface-elevated);
   color: var(--color-primary);
 }
 
@@ -89,7 +89,7 @@
   justify-content: flex-end;
   gap: var(--space-4);
   border-bottom: 1px solid var(--color-border);
-  background: rgb(255 255 255 / 86%);
+  background: color-mix(in srgb, var(--surface-elevated) 86%, transparent);
   padding: var(--space-3) var(--space-5);
 }
 
@@ -166,7 +166,7 @@
     z-index: 10;
     display: block;
     border: 0;
-    background: rgb(23 33 27 / 42%);
+    background: var(--overlay);
   }
 
   .topbar {

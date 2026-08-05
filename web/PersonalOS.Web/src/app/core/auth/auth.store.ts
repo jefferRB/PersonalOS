@@ -78,6 +78,23 @@ export class AuthStore {
     this.startupResolvedSignal.set(true);
   }
 
+  /**
+   * Applies a saved display-name change to the in-memory current user.
+   *
+   * This keeps one current-user store rather than introducing a competing profile store. The
+   * change stays in memory: `/api/auth/me` remains the source of truth after a reload, and
+   * nothing is written to browser storage.
+   */
+  updateDisplayName(displayName: string): void {
+    const user = this.currentUserSignal();
+
+    if (user === null || user.displayName === displayName) {
+      return;
+    }
+
+    this.currentUserSignal.set({ ...user, displayName });
+  }
+
   clearPrivateState(): void {
     this.currentUserSignal.set(null);
     this.statusSignal.set('anonymous');

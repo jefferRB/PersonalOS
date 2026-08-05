@@ -1,0 +1,53 @@
+<div class="filters" role="group" [attr.aria-label]="label()">
+  <div class="filters__field">
+    <label class="filters__label" [attr.for]="kindId()">Kind</label>
+    <select
+      class="select select--compact"
+      [id]="kindId()"
+      [value]="filter().kind"
+      (change)="onKindChange($any($event.target).value)"
+    >
+      @for (option of kindOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="filters__field">
+    <label class="filters__label" [attr.for]="viewId()">View</label>
+    <select
+      class="select select--compact"
+      [id]="viewId()"
+      [value]="filter().view"
+      (change)="onViewChange($any($event.target).value)"
+    >
+      @for (option of viewOptions(); track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </div>
+
+  @if (showImportantOnly()) {
+    <div class="filters__field filters__field--check">
+      <input
+        type="checkbox"
+        [id]="importantId()"
+        [checked]="filter().importantOnly"
+        (change)="onImportantChange($any($event.target).checked)"
+      />
+      <label class="filters__label" [attr.for]="importantId()">Important only</label>
+    </div>
+  }
+
+  @if (!isDefault()) {
+    <button class="button button--ghost button--small" type="button" (click)="cleared.emit()">
+      Clear filters
+    </button>
+  }
+
+  @if (hiddenCount() > 0) {
+    <p class="filters__hidden" role="status">
+      {{ hiddenCount() }} hidden by filters
+    </p>
+  }
+</div>

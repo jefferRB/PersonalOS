@@ -1,0 +1,116 @@
+<section class="page calendar" aria-labelledby="calendar-title">
+  <div class="page__header">
+    <div class="page__title">
+      <h1 id="calendar-title">Calendar</h1>
+      <p>
+        Plan the days ahead. Repeating activities are calculated from their rule, so nothing is
+        stored for a future day until you act on it.
+      </p>
+    </div>
+
+    <div class="page__actions">
+      <button
+        class="button button--secondary"
+        type="button"
+        [disabled]="!canGoToToday() || store.isViewingToday()"
+        (click)="onGoToToday()"
+      >
+        Today
+      </button>
+      <button class="button button--primary" type="button" (click)="store.openPlanner()">
+        New activity
+      </button>
+    </div>
+  </div>
+
+  <!-- Success messages are announced rather than only shown, so a screen-reader user hears that a
+       save landed without having to go looking for the change. -->
+  <p class="visually-hidden" role="status" aria-live="polite">{{ store.announcement() }}</p>
+
+  @if (store.actionError()) {
+    <div class="alert alert--error" role="alert">
+      <p>{{ store.actionError() }}</p>
+    </div>
+  }
+
+  <ul class="legend" aria-label="What the colours mean">
+    @for (kind of kindLegend; track kind.kind) {
+      <li class="legend__item">
+        <span class="legend__swatch" [attr.data-kind]="kind.token">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path [attr.d]="kind.iconPath" />
+          </svg>
+        </span>
+        <span>{{ kind.label }}</span>
+      </li>
+    }
+  </ul>
+
+  <div class="calendar-layout">
+    <app-month-calendar
+      [monthAnchor]="store.monthAnchorDate()"
+      [anchor]="store.anchor()"
+      [selectedDate]="store.selectedDate()"
+      [todayDate]="store.todayLocalDate()"
+      [summaries]="store.summariesByDate()"
+      [display]="store.display()"
+      [isSavingDisplay]="store.isSavingDisplay()"
+      [displayServerError]="store.displayError()"
+      [isLoading]="store.month().isLoading"
+      [error]="store.month().error"
+      (daySelected)="onDaySelected($event)"
+      (monthOffset)="onMonthOffset($event)"
+      (monthSelected)="onMonthSelected($event)"
+      (planDay)="store.openPlanner()"
+      (displayApplied)="onDisplayApplied($event)"
+      (retry)="store.reloadMonth()"
+    />
+
+    <app-daily-agenda
+      [date]="store.selectedDate()"
+      [todayDate]="store.todayLocalDate()"
+      [anytime]="store.filteredDay().anytime"
+      [scheduled]="store.filteredDay().scheduled"
+      [filter]="store.dayFilter()"
+      [isFilterDefault]="store.isDayFilterDefault()"
+      [hiddenCount]="store.hiddenDayCount()"
+      [isLoading]="store.day().isLoading"
+      [error]="store.day().error"
+      [busyItemId]="store.busyItemId()"
+      (dayOffset)="onDayOffset($event)"
+      (goToToday)="onGoToToday()"
+      (planDay)="store.openPlanner()"
+      (open)="onOpenOccurrence($event)"
+      (statusChange)="onStatusChange($event)"
+      (filterChange)="onDayFilterChange($event)"
+      (filterCleared)="store.resetDayFilter()"
+      (retry)="store.reloadDay()"
+    />
+  </div>
+
+  <app-upcoming-week
+    [groups]="store.filteredUpcoming()"
+    [todayDate]="store.todayLocalDate()"
+    [filter]="store.upcomingFilter()"
+    [isFilterDefault]="store.isUpcomingFilterDefault()"
+    [isLoading]="store.upcoming().isLoading"
+    [error]="store.upcoming().error"
+    (open)="onOpenOccurrence($event)"
+    (daySelected)="onJumpToDate($event)"
+    (filterChange)="onUpcomingFilterChange($event)"
+    (filterCleared)="store.resetUpcomingFilter()"
+    (retry)="store.reloadUpcoming()"
+  />
+
+  <app-day-planner
+    [isOpen]="store.isPlannerOpen()"
+    [date]="store.selectedDate()"
+    [day]="store.day().value"
+    [isLoading]="store.day().isLoading"
+    [todayDate]="store.todayLocalDate()"
+    (closed)="store.closePlanner()"
+    (dayOffset)="onDayOffset($event)"
+    (goToToday)="onGoToToday()"
+    (statusChange)="onStatusChange($event)"
+  />
+</section>

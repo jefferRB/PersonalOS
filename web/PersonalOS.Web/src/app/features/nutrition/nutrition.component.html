@@ -1,0 +1,334 @@
+<section class="page" aria-labelledby="nutrition-title">
+  <div class="page__header">
+    <div class="page__title">
+      <h1 id="nutrition-title">Nutrition</h1>
+      <p>
+        What you ate and the daily target you chose. PersonalOS records the numbers you enter and
+        compares them. It does not recommend a target and does not judge what you eat.
+      </p>
+    </div>
+
+    <div class="page__actions">
+      <div class="field">
+        <label class="field__label" for="nutrition-date">Day</label>
+        <input
+          id="nutrition-date"
+          class="input"
+          type="date"
+          [value]="selectedDate()"
+          (change)="onDateChange($event)"
+        />
+      </div>
+    </div>
+  </div>
+
+  @if (loadError()) {
+    <div class="alert alert--error" role="alert">
+      <p>{{ loadError() }}</p>
+      <button class="button button--secondary" type="button" (click)="load()">Try again</button>
+    </div>
+  }
+
+  @if (saveSuccess()) {
+    <p class="alert alert--success" role="status" aria-live="polite">{{ saveSuccess() }}</p>
+  }
+
+  @if (isLoading()) {
+    <p class="card__hint" role="status" aria-live="polite" aria-busy="true">Loading this day.</p>
+  } @else if (day(); as nutritionDay) {
+    <section class="card" aria-labelledby="totals-title">
+      <div class="card__header">
+        <h2 id="totals-title">{{ dayLabel() }}</h2>
+        <button class="button button--secondary button--small" type="button" (click)="openGoalForm()">
+          {{ hasTarget() ? 'Edit target' : 'Set target' }}
+        </button>
+      </div>
+
+      <ul class="stat-grid">
+        <li class="stat">
+          <span class="stat__value">{{ nutritionDay.consumedCalories }}</span>
+          <span class="stat__label">Calories recorded</span>
+        </li>
+        <li class="stat">
+          <span class="stat__value">
+            {{ nutritionDay.goal.dailyCalorieTarget ?? 'Not set' }}
+          </span>
+          <span class="stat__label">Daily target</span>
+        </li>
+        <li class="stat">
+          <span class="stat__value">
+            {{ nutritionDay.remainingCalories === null ? '-' : nutritionDay.remainingCalories }}
+          </span>
+          <span class="stat__label">
+            @if (nutritionDay.remainingCalories === null) {
+              Set a target to see the difference
+            } @else if (nutritionDay.remainingCalories < 0) {
+              Calories above your target
+            } @else {
+              Calories below your target
+            }
+          </span>
+        </li>
+        <li class="stat">
+          <span class="stat__value">{{ nutritionDay.proteinGrams }}</span>
+          <span class="stat__label">Protein, grams</span>
+        </li>
+        <li class="stat">
+          <span class="stat__value">{{ nutritionDay.carbohydrateGrams }}</span>
+          <span class="stat__label">Carbohydrates, grams</span>
+        </li>
+        <li class="stat">
+          <span class="stat__value">{{ nutritionDay.fatGrams }}</span>
+          <span class="stat__label">Fat, grams</span>
+        </li>
+      </ul>
+
+      @if (isGoalFormOpen()) {
+        <form class="inline-form" [formGroup]="goalForm" (ngSubmit)="saveGoal()">
+          <h3>Daily target</h3>
+
+          @if (formError()) {
+            <p class="alert alert--error" role="alert">{{ formError() }}</p>
+          }
+
+          <div class="form-grid">
+            <div class="field">
+              <label class="field__label" for="goal-calories">Calories</label>
+              <input
+                id="goal-calories"
+                class="input"
+                type="number"
+                inputmode="numeric"
+                min="500"
+                formControlName="dailyCalorieTarget"
+                [attr.aria-invalid]="
+                  goalForm.controls.dailyCalorieTarget.touched
+                  && goalForm.controls.dailyCalorieTarget.invalid
+                "
+              />
+            </div>
+            <div class="field">
+              <label class="field__label" for="goal-protein">Protein, grams</label>
+              <input
+                id="goal-protein"
+                class="input"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                formControlName="proteinTargetGrams"
+              />
+            </div>
+            <div class="field">
+              <label class="field__label" for="goal-carbs">Carbohydrates, grams</label>
+              <input
+                id="goal-carbs"
+                class="input"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                formControlName="carbohydrateTargetGrams"
+              />
+            </div>
+            <div class="field">
+              <label class="field__label" for="goal-fat">Fat, grams</label>
+              <input
+                id="goal-fat"
+                class="input"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                formControlName="fatTargetGrams"
+              />
+            </div>
+          </div>
+
+          <p class="card__hint">
+            This is the number you decided to use. PersonalOS stores it and compares against it.
+          </p>
+
+          <div class="form-actions">
+            <button class="button button--primary" type="submit" [disabled]="isSaving()">
+              {{ isSaving() ? 'Saving' : 'Save target' }}
+            </button>
+            <button class="button button--ghost" type="button" (click)="closeGoalForm()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      }
+    </section>
+
+    <section class="card" aria-labelledby="meals-title">
+      <div class="card__header">
+        <h2 id="meals-title">Meals</h2>
+        <button class="button button--primary button--small" type="button" (click)="openMealForm()">
+          Add meal
+        </button>
+      </div>
+
+      @if (isMealFormOpen()) {
+        <form class="inline-form" [formGroup]="mealForm" (ngSubmit)="saveMeal()">
+          <h3>{{ editingMealId() === null ? 'New meal' : 'Edit meal' }}</h3>
+
+          @if (formError()) {
+            <p class="alert alert--error" role="alert">{{ formError() }}</p>
+          }
+
+          <div class="form-grid">
+            <div class="field">
+              <label class="field__label" for="meal-name">Food</label>
+              <input
+                id="meal-name"
+                class="input"
+                type="text"
+                formControlName="name"
+                autocomplete="off"
+                [attr.aria-invalid]="
+                  mealForm.controls.name.touched && mealForm.controls.name.invalid
+                "
+              />
+            </div>
+            <div class="field">
+              <label class="field__label" for="meal-quantity">Quantity</label>
+              <input
+                id="meal-quantity"
+                class="input"
+                type="text"
+                formControlName="quantity"
+                autocomplete="off"
+              />
+              <p class="field__hint">For example 200 g, or 1 bowl.</p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="meal-type">Meal</label>
+              <select id="meal-type" class="select" formControlName="mealType">
+                @for (option of mealTypes; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label class="field__label" for="meal-calories">Calories</label>
+              <input
+                id="meal-calories"
+                class="input"
+                type="number"
+                inputmode="numeric"
+                min="0"
+                formControlName="calories"
+                [attr.aria-invalid]="
+                  mealForm.controls.calories.touched && mealForm.controls.calories.invalid
+                "
+              />
+            </div>
+            <div class="field">
+              <label class="field__label" for="meal-time">Time</label>
+              <input id="meal-time" class="input" type="time" formControlName="occurredAtLocalTime" />
+            </div>
+            <div class="field">
+              <label class="field__label" for="meal-protein">Protein, grams</label>
+              <input
+                id="meal-protein"
+                class="input"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                formControlName="proteinGrams"
+              />
+            </div>
+            <div class="field">
+              <label class="field__label" for="meal-carbs">Carbohydrates, grams</label>
+              <input
+                id="meal-carbs"
+                class="input"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                formControlName="carbohydrateGrams"
+              />
+            </div>
+            <div class="field">
+              <label class="field__label" for="meal-fat">Fat, grams</label>
+              <input
+                id="meal-fat"
+                class="input"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                formControlName="fatGrams"
+              />
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="meal-notes">Note</label>
+            <input id="meal-notes" class="input" type="text" formControlName="notes" />
+          </div>
+
+          <div class="form-actions">
+            <button class="button button--primary" type="submit" [disabled]="isSaving()">
+              {{ isSaving() ? 'Saving' : 'Save meal' }}
+            </button>
+            <button class="button button--ghost" type="button" (click)="closeMealForm()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (mealGroups().length === 0) {
+        <div class="empty">
+          <p>No meals recorded for this day.</p>
+          <p>Select <strong>Add meal</strong> to record the first one.</p>
+        </div>
+      } @else {
+        @for (group of mealGroups(); track group.type) {
+          <div class="meal-group">
+            <h3>{{ group.label }} <span class="chip">{{ group.calories }} kcal</span></h3>
+            <ul class="record-list">
+              @for (meal of group.meals; track meal.id) {
+                <li class="record">
+                  <div class="record__main">
+                    <p class="record__title">{{ meal.name }}</p>
+                    <p class="record__meta">
+                      <span>{{ meal.calories }} kcal</span>
+                      @if (meal.quantity) {
+                        <span>{{ meal.quantity }}</span>
+                      }
+                      @if (meal.occurredAtLocalTime) {
+                        <span>{{ timeLabel(meal.occurredAtLocalTime) }}</span>
+                      }
+                      @if (meal.proteinGrams !== null) {
+                        <span>{{ meal.proteinGrams }} g protein</span>
+                      }
+                    </p>
+                    @if (meal.notes) {
+                      <p class="record__meta">{{ meal.notes }}</p>
+                    }
+                  </div>
+                  <div class="record__actions">
+                    <button
+                      class="button button--secondary button--small"
+                      type="button"
+                      (click)="openMealForm(meal)"
+                    >
+                      Edit<span class="visually-hidden"> {{ meal.name }}</span>
+                    </button>
+                    <button
+                      class="button button--danger button--small"
+                      type="button"
+                      [disabled]="pendingMealId() !== null"
+                      (click)="deleteMeal(meal)"
+                    >
+                      Delete<span class="visually-hidden"> {{ meal.name }}</span>
+                    </button>
+                  </div>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      }
+    </section>
+  }
+</section>

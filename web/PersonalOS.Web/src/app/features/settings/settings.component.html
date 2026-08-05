@@ -1,49 +1,236 @@
 <section class="settings" aria-labelledby="settings-title">
   <div class="settings__header">
-    <p class="settings__eyebrow">Account</p>
+    <p class="settings__eyebrow">Preferences</p>
     <h1 id="settings-title">Settings</h1>
     <p>
-      Authentication is handled by the ASP.NET Core API through a secure server session.
-      Angular keeps only the current account summary in memory.
+      Keep the product comfortable to use, with account and time choices that shape the daily
+      screens.
     </p>
   </div>
 
-  <section class="account-summary" aria-labelledby="account-summary-title">
-    <h2 id="account-summary-title">Account summary</h2>
-    <dl>
-      <div>
-        <dt>Display name</dt>
-        <dd>{{ currentUser()?.displayName }}</dd>
-      </div>
-      <div>
-        <dt>Email</dt>
-        <dd>{{ currentUser()?.email }}</dd>
-      </div>
-      <div>
-        <dt>Session</dt>
-        <dd>Server-managed cookie session</dd>
-      </div>
-    </dl>
+  <section class="settings-card" aria-labelledby="appearance-section-title">
+    <div class="settings-card__heading">
+      <h2 id="appearance-section-title">Appearance</h2>
+      <p>Choose a theme or let PersonalOS follow this device.</p>
+    </div>
+
+    <fieldset class="theme-picker">
+      <legend class="visually-hidden">Theme</legend>
+      @for (option of themeOptions; track option.value) {
+        <label
+          class="theme-choice"
+          [class.theme-choice--selected]="themePreference() === option.value"
+        >
+          <input
+            type="radio"
+            name="settings-theme"
+            [value]="option.value"
+            [checked]="themePreference() === option.value"
+            (change)="selectThemePreference(option.value)"
+          />
+          <span class="theme-choice__label">{{ option.label }}</span>
+          <span class="theme-choice__description">{{ option.description }}</span>
+        </label>
+      }
+    </fieldset>
+
+    <p class="field__hint" role="status" aria-live="polite">
+      PersonalOS is using the {{ resolvedTheme() }} interface.
+    </p>
   </section>
 
-  <section class="session-note" aria-labelledby="session-note-title">
-    <h2 id="session-note-title">Session privacy</h2>
-    <p>
-      This page does not display cookies, tokens, claims, security stamps, password hashes,
-      or internal authentication values. Reloading the app asks `/api/auth/me` for the
-      session status again.
+  @if (isLoading()) {
+    <p class="settings__status" role="status" aria-live="polite" aria-busy="true">
+      Loading your profile.
     </p>
+  } @else if (loadError()) {
+    <div class="alert alert--error" role="alert" aria-live="assertive">
+      <p>{{ loadError() }}</p>
+      <button class="button button--secondary" type="button" (click)="loadProfile()">
+        Try again
+      </button>
+    </div>
+  } @else {
+    @if (saveSuccess()) {
+      <div class="alert alert--success" role="status" aria-live="polite">
+        Settings saved. Your display name and time zone are up to date.
+      </div>
+    }
+
+    @if (formError()) {
+      <div
+        #errorSummary
+        class="alert alert--error"
+        role="alert"
+        tabindex="-1"
+        aria-live="assertive"
+      >
+        {{ formError() }}
+      </div>
+    }
+
+    <form class="settings__form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <section class="settings-card" aria-labelledby="account-section-title">
+        <div class="settings-card__heading">
+          <h2 id="account-section-title">Profile</h2>
+          <p>Your display name appears in the header and in the Today greeting.</p>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="settings-display-name">Display name</label>
+          <input
+            id="settings-display-name"
+            class="input"
+            type="text"
+            autocomplete="name"
+            maxlength="100"
+            formControlName="displayName"
+            [attr.aria-invalid]="displayNameError() ? 'true' : 'false'"
+            [attr.aria-describedby]="
+              describedBy(
+                'settings-display-name-hint',
+                displayNameError() ? 'settings-display-name-error' : null
+              )
+            "
+          />
+          <p id="settings-display-name-hint" class="field__hint">
+            Between 2 and 100 characters. Surrounding spaces are removed when you save.
+          </p>
+          @if (displayNameError()) {
+            <p id="settings-display-name-error" class="field__error">{{ displayNameError() }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="settings-email">Email</label>
+          <input
+            id="settings-email"
+            class="input"
+            type="email"
+            readonly
+            disabled
+            [value]="profile()?.email"
+            aria-describedby="settings-email-hint"
+          />
+          <p id="settings-email-hint" class="field__hint">
+            Changing your email is not available yet. It needs confirmation and account-recovery
+            flows that PersonalOS has not built, so the address stays read-only for now.
+          </p>
+        </div>
+
+        <div class="field">
+          <span class="field__label" id="settings-session-label">Session</span>
+          <p class="field__hint" aria-labelledby="settings-session-label">
+            Server-managed cookie session. This page never shows cookies, tokens, claims, security
+            stamps, or other internal authentication values.
+          </p>
+        </div>
+      </section>
+
+      <section class="settings-card" aria-labelledby="time-zone-section-title">
+        <div class="settings-card__heading">
+          <h2 id="time-zone-section-title">Time and Region</h2>
+          <p>
+            Your saved time zone decides which local calendar day Today and Calendar should show.
+          </p>
+        </div>
+
+        <dl class="time-zone-facts">
+          <div>
+            <dt>Saved time zone</dt>
+            <dd>{{ savedTimeZoneId() ?? 'Not set' }}</dd>
+          </div>
+          <div>
+            <dt>Detected in this browser</dt>
+            <dd>{{ browserTimeZoneId() ?? 'Not reported by this browser' }}</dd>
+          </div>
+        </dl>
+
+        <div class="field">
+          <label class="field__label" for="settings-time-zone">IANA time zone</label>
+          <input
+            id="settings-time-zone"
+            class="input"
+            type="text"
+            list="settings-time-zone-options"
+            autocomplete="off"
+            spellcheck="false"
+            maxlength="100"
+            formControlName="timeZoneId"
+            [attr.aria-invalid]="timeZoneError() ? 'true' : 'false'"
+            [attr.aria-describedby]="
+              describedBy(
+                'settings-time-zone-hint',
+                timeZoneError() ? 'settings-time-zone-error' : null
+              )
+            "
+          />
+          <datalist id="settings-time-zone-options">
+            @for (option of timeZoneOptions(); track option) {
+              <option [value]="option"></option>
+            }
+          </datalist>
+          <p id="settings-time-zone-hint" class="field__hint">
+            Choose from the list or type an identifier such as America/Costa_Rica.
+          </p>
+          @if (timeZoneError()) {
+            <p id="settings-time-zone-error" class="field__error">{{ timeZoneError() }}</p>
+          }
+        </div>
+
+        <div class="time-zone-suggestion">
+          <button
+            class="button button--secondary"
+            type="button"
+            [disabled]="!canUseBrowserTimeZone()"
+            (click)="useBrowserTimeZone()"
+          >
+            Use browser time zone
+          </button>
+          <p class="field__hint">
+            The browser suggestion is only a starting point. Nothing changes until you save.
+          </p>
+        </div>
+      </section>
+
+      <div class="settings__actions">
+        <button
+          class="button button--primary"
+          type="submit"
+          [disabled]="!canSubmit()"
+          [attr.aria-busy]="isSaving()"
+        >
+          {{ isSaving() ? 'Saving' : 'Save settings' }}
+        </button>
+        <p class="field__hint" role="status" aria-live="polite">
+          @if (isSaving()) {
+            Saving your settings.
+          } @else if (hasChanges()) {
+            You have unsaved changes.
+          } @else {
+            No unsaved changes.
+          }
+        </p>
+      </div>
+    </form>
+  }
+
+  <section class="settings-card" aria-labelledby="sign-out-title">
+    <div class="settings-card__heading">
+      <h2 id="sign-out-title">Privacy and Session</h2>
+      <p>Signing out clears the private state PersonalOS keeps in memory for this browser.</p>
+    </div>
     <button
-      class="button button--secondary"
+      class="button button--secondary settings__sign-out"
       type="button"
-      [disabled]="isLoggingOut()"
-      [attr.aria-busy]="isLoggingOut()"
-      (click)="logout()"
+      [disabled]="isSigningOut()"
+      [attr.aria-busy]="isSigningOut()"
+      (click)="signOut()"
     >
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M10 17l5-5-5-5M15 12H3M21 4v16h-6" />
       </svg>
-      <span>{{ isLoggingOut() ? 'Signing out' : 'Sign out' }}</span>
+      <span>{{ isSigningOut() ? 'Signing out' : 'Sign out' }}</span>
     </button>
   </section>
 </section>

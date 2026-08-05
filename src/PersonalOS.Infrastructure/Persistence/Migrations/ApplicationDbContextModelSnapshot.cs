@@ -153,6 +153,533 @@ namespace PersonalOS.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("PersonalOS.Domain.Journal.DailyJournalEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AdjustmentForTomorrow")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Cause")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("FreeNotes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Lesson")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateOnly>("LocalDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WentPoorly")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("WentWell")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "LocalDate")
+                        .IsUnique()
+                        .HasDatabaseName("IX_DailyJournalEntries_UserId_LocalDate");
+
+                    b.ToTable("DailyJournalEntries", (string)null);
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Nutrition.MealEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Calories")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("CarbohydrateGrams")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("decimal(7,2)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<decimal?>("FatGrams")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("decimal(7,2)");
+
+                    b.Property<DateOnly>("LocalDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("MealType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<TimeOnly?>("OccurredAtLocalTime")
+                        .HasColumnType("time");
+
+                    b.Property<decimal?>("ProteinGrams")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("decimal(7,2)");
+
+                    b.Property<string>("Quantity")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "LocalDate")
+                        .HasDatabaseName("IX_MealEntries_UserId_LocalDate");
+
+                    b.ToTable("MealEntries", (string)null);
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Nutrition.NutritionGoal", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("CarbohydrateTargetGrams")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("decimal(7,2)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("DailyCalorieTarget")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("FatTargetGrams")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("decimal(7,2)");
+
+                    b.Property<decimal?>("ProteinTargetGrams")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("decimal(7,2)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("NutritionGoals", (string)null);
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Planning.PlanningItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<TimeOnly?>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly?>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "StartDate")
+                        .HasDatabaseName("IX_PlanningItems_UserId_StartDate");
+
+                    b.ToTable("PlanningItems", (string)null);
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Planning.PlanningItemOccurrenceState", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("CompletedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateOnly>("OccurrenceDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("PlanningItemId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanningItemId", "OccurrenceDate")
+                        .IsUnique()
+                        .HasDatabaseName("IX_PlanningItemOccurrenceStates_PlanningItemId_OccurrenceDate");
+
+                    b.HasIndex("UserId", "OccurrenceDate")
+                        .HasDatabaseName("IX_PlanningItemOccurrenceStates_UserId_OccurrenceDate");
+
+                    b.ToTable("PlanningItemOccurrenceStates", (string)null);
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Routines.RoutineSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("CompletedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateOnly>("LocalDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid>("RoutineTemplateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("StartedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoutineTemplateId", "LocalDate")
+                        .IsUnique()
+                        .HasDatabaseName("IX_RoutineSessions_RoutineTemplateId_LocalDate");
+
+                    b.HasIndex("UserId", "LocalDate")
+                        .HasDatabaseName("IX_RoutineSessions_UserId_LocalDate");
+
+                    b.ToTable("RoutineSessions", (string)null);
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Routines.RoutineStep", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("RoutineTemplateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("StepType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TargetDurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TargetRepetitions")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TargetSets")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("TargetWeight")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("decimal(7,2)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoutineTemplateId", "Order")
+                        .IsUnique()
+                        .HasDatabaseName("IX_RoutineSteps_RoutineTemplateId_Order");
+
+                    b.ToTable("RoutineSteps", (string)null);
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Routines.RoutineStepResult", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("ActualDurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ActualRepetitions")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ActualSets")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("ActualWeight")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("decimal(7,2)");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid>("RoutineSessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RoutineStepId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoutineSessionId", "RoutineStepId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_RoutineStepResults_RoutineSessionId_RoutineStepId");
+
+                    b.ToTable("RoutineStepResults", (string)null);
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Routines.RoutineTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "IsActive")
+                        .HasDatabaseName("IX_RoutineTemplates_UserId_IsActive");
+
+                    b.ToTable("RoutineTemplates", (string)null);
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Study.StudyProject", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_StudyProjects_UserId");
+
+                    b.ToTable("StudyProjects", (string)null);
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Study.StudyResource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ExternalUrl")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("ResourceType")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("StudyProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudyProjectId");
+
+                    b.ToTable("StudyResources", (string)null);
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Study.StudySession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("LocalDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ProgressNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<TimeOnly?>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<Guid>("StudyProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Summary")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudyProjectId");
+
+                    b.HasIndex("UserId", "LocalDate")
+                        .HasDatabaseName("IX_StudySessions_UserId_LocalDate");
+
+                    b.ToTable("StudySessions", (string)null);
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Users.UserPreferences", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<TimeOnly>("CalendarDayEndTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly>("CalendarDayStartTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("CalendarSlotMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("UserPreferences", (string)null);
+                });
+
             modelBuilder.Entity("PersonalOS.Infrastructure.Identity.AppUser", b =>
                 {
                     b.Property<Guid>("Id")
@@ -278,6 +805,206 @@ namespace PersonalOS.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Journal.DailyJournalEntry", b =>
+                {
+                    b.HasOne("PersonalOS.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Nutrition.MealEntry", b =>
+                {
+                    b.HasOne("PersonalOS.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Nutrition.NutritionGoal", b =>
+                {
+                    b.HasOne("PersonalOS.Infrastructure.Identity.AppUser", null)
+                        .WithOne()
+                        .HasForeignKey("PersonalOS.Domain.Nutrition.NutritionGoal", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Planning.PlanningItem", b =>
+                {
+                    b.HasOne("PersonalOS.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("PersonalOS.Domain.Planning.PlanningRecurrence", "Recurrence", b1 =>
+                        {
+                            b1.Property<Guid>("PlanningItemId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<DateOnly?>("EndDate")
+                                .HasColumnType("date")
+                                .HasColumnName("RecurrenceEndDate");
+
+                            b1.Property<int>("Frequency")
+                                .HasColumnType("int")
+                                .HasColumnName("RecurrenceFrequency");
+
+                            b1.Property<int>("Interval")
+                                .HasColumnType("int")
+                                .HasColumnName("RecurrenceInterval");
+
+                            b1.Property<int>("SelectedWeekdaysMask")
+                                .HasColumnType("int")
+                                .HasColumnName("RecurrenceSelectedWeekdaysMask");
+
+                            b1.HasKey("PlanningItemId");
+
+                            b1.ToTable("PlanningItems");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PlanningItemId");
+                        });
+
+                    b.Navigation("Recurrence")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Planning.PlanningItemOccurrenceState", b =>
+                {
+                    b.HasOne("PersonalOS.Domain.Planning.PlanningItem", null)
+                        .WithMany()
+                        .HasForeignKey("PlanningItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Routines.RoutineSession", b =>
+                {
+                    b.HasOne("PersonalOS.Domain.Routines.RoutineTemplate", null)
+                        .WithMany()
+                        .HasForeignKey("RoutineTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Routines.RoutineStep", b =>
+                {
+                    b.HasOne("PersonalOS.Domain.Routines.RoutineTemplate", null)
+                        .WithMany("Steps")
+                        .HasForeignKey("RoutineTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Routines.RoutineStepResult", b =>
+                {
+                    b.HasOne("PersonalOS.Domain.Routines.RoutineSession", null)
+                        .WithMany("StepResults")
+                        .HasForeignKey("RoutineSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Routines.RoutineTemplate", b =>
+                {
+                    b.HasOne("PersonalOS.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("PersonalOS.Domain.Routines.RecurrenceRule", "Recurrence", b1 =>
+                        {
+                            b1.Property<Guid>("RoutineTemplateId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<DateOnly?>("EndDate")
+                                .HasColumnType("date")
+                                .HasColumnName("RecurrenceEndDate");
+
+                            b1.Property<int>("Frequency")
+                                .HasColumnType("int")
+                                .HasColumnName("RecurrenceFrequency");
+
+                            b1.Property<int>("Interval")
+                                .HasColumnType("int")
+                                .HasColumnName("RecurrenceInterval");
+
+                            b1.Property<int>("SelectedWeekdaysMask")
+                                .HasColumnType("int")
+                                .HasColumnName("RecurrenceSelectedWeekdaysMask");
+
+                            b1.Property<DateOnly>("StartDate")
+                                .HasColumnType("date")
+                                .HasColumnName("RecurrenceStartDate");
+
+                            b1.HasKey("RoutineTemplateId");
+
+                            b1.ToTable("RoutineTemplates");
+
+                            b1.WithOwner()
+                                .HasForeignKey("RoutineTemplateId");
+                        });
+
+                    b.Navigation("Recurrence")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Study.StudyProject", b =>
+                {
+                    b.HasOne("PersonalOS.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Study.StudyResource", b =>
+                {
+                    b.HasOne("PersonalOS.Domain.Study.StudyProject", null)
+                        .WithMany("Resources")
+                        .HasForeignKey("StudyProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Study.StudySession", b =>
+                {
+                    b.HasOne("PersonalOS.Domain.Study.StudyProject", null)
+                        .WithMany()
+                        .HasForeignKey("StudyProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Users.UserPreferences", b =>
+                {
+                    b.HasOne("PersonalOS.Infrastructure.Identity.AppUser", null)
+                        .WithOne()
+                        .HasForeignKey("PersonalOS.Domain.Users.UserPreferences", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Routines.RoutineSession", b =>
+                {
+                    b.Navigation("StepResults");
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Routines.RoutineTemplate", b =>
+                {
+                    b.Navigation("Steps");
+                });
+
+            modelBuilder.Entity("PersonalOS.Domain.Study.StudyProject", b =>
+                {
+                    b.Navigation("Resources");
                 });
 #pragma warning restore 612, 618
         }

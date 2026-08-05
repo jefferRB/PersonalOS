@@ -1,0 +1,111 @@
+<div
+  class="activity"
+  [attr.data-kind]="presentation().token"
+  [attr.data-status]="occurrence().status"
+>
+  <button
+    type="button"
+    class="activity__open"
+    [attr.aria-label]="'Edit ' + accessibleName()"
+    (click)="onOpen()"
+  >
+    <span class="activity__head">
+      <span class="activity__kind">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path [attr.d]="presentation().iconPath" />
+        </svg>
+        <span>{{ presentation().label }}</span>
+      </span>
+
+      @if (occurrence().priority === 'high') {
+        <span class="badge badge--important">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3v11M12 18v2" />
+          </svg>
+          <span>Important</span>
+        </span>
+      }
+
+      @if (occurrence().isRecurring) {
+        <span class="badge">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20 12a8 8 0 1 1-2.3-5.6M20 3v4h-4" />
+          </svg>
+          <span>Repeats</span>
+        </span>
+      }
+    </span>
+
+    <span class="activity__title">{{ occurrence().title }}</span>
+
+    <span class="activity__meta">
+      <span class="activity__time">{{ timeLabel() }}</span>
+      <span aria-hidden="true">&middot;</span>
+      <span>{{ categoryLabel() }}</span>
+      <span aria-hidden="true">&middot;</span>
+      <span class="activity__status">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="statusIcon()" /></svg>
+        <span>{{ statusText() }}</span>
+      </span>
+    </span>
+  </button>
+
+  @if (showActions()) {
+    <div class="activity__actions">
+      @if (canComplete()) {
+        <button
+          type="button"
+          class="button button--secondary button--small"
+          [disabled]="isBusy()"
+          (click)="onToggleCompletion()"
+        >
+          {{ isCompleted() ? 'Reopen' : 'Complete' }}
+          <span class="visually-hidden">{{ occurrence().title }}</span>
+        </button>
+      }
+
+      @if (canMarkFailed()) {
+        <button
+          type="button"
+          class="button button--secondary button--small"
+          [disabled]="isBusy()"
+          (click)="onMarkFailed()"
+        >
+          Mark failed<span class="visually-hidden"> {{ occurrence().title }}</span>
+        </button>
+      }
+
+      @if (canReopen()) {
+        <button
+          type="button"
+          class="button button--secondary button--small"
+          [disabled]="isBusy()"
+          (click)="onReopen()"
+        >
+          {{ isCancelled() ? 'Restore' : 'Reopen' }}
+          <span class="visually-hidden">{{ occurrence().title }}</span>
+        </button>
+      }
+
+      <button
+        type="button"
+        class="button button--ghost button--small"
+        [disabled]="isBusy()"
+        (click)="onOpen()"
+      >
+        Edit<span class="visually-hidden"> {{ occurrence().title }}</span>
+      </button>
+
+      @if (canCancel()) {
+        <button
+          type="button"
+          class="button button--ghost button--small"
+          [disabled]="isBusy()"
+          (click)="onCancel()"
+        >
+          Cancel<span class="visually-hidden"> {{ occurrence().title }}</span>
+        </button>
+      }
+    </div>
+  }
+</div>

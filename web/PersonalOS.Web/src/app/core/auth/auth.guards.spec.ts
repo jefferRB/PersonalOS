@@ -6,6 +6,7 @@ import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 
 import { routes } from '../../app.routes';
+import { todaySummary } from '../../../testing/api-fixtures';
 import { CurrentUser } from './auth.models';
 import { AuthStore } from './auth.store';
 import { httpErrorInterceptor } from '../http/http-error.interceptor';
@@ -54,6 +55,9 @@ describe('authentication route guards', () => {
     await harness.navigateByUrl('/login');
 
     expect(router.url).toBe('/app/today');
+
+    // Today asks the API for the account's day once it renders.
+    http.expectOne('/api/today').flush(todaySummary());
   });
 
   it('renders the accessible not-found route for unknown URLs', async () => {
@@ -63,5 +67,26 @@ describe('authentication route guards', () => {
 
     expect(router.url).toBe('/missing-route');
     expect(harness.routeNativeElement?.textContent).toContain('Page not found');
+  });
+
+  it('protects every daily module route from anonymous access', async () => {
+    TestBed.inject(AuthStore).clearPrivateState();
+    const harness = await RouterTestingHarness.create();
+
+    for (const url of [
+      '/app/calendar',
+      '/app/routines',
+      '/app/nutrition',
+      '/app/study',
+      '/app/journal',
+    ]) {
+      await harness.navigateByUrl(url);
+
+      // A guard is a navigation aid, not an authorization boundary. The point of this test is
+      // that no daily screen is reachable without a session, so none of them can even try to
+      // render another account's data. The guard also remembers where the user was heading.
+      expect(router.url).toContain('/login');
+      expect(router.url).toContain(encodeURIComponent(url));
+    }
   });
 });

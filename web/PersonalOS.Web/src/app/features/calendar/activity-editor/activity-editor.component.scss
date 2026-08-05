@@ -1,0 +1,47 @@
+.editor {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+// Save and Cancel stay reachable however long the form runs, without a second scrollbar inside the
+// drawer. The form itself scrolls with the drawer; only the actions stay pinned.
+.editor .form-actions {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  padding: var(--space-3) 0 0;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.editor h3 {
+  margin: 0;
+}
+
+.weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.weekdays .field__hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.weekday {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  text-transform: capitalize;
+}
+
+.editor__delete {
+  margin-left: auto;
+}

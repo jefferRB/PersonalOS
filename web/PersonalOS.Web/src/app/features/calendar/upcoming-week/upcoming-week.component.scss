@@ -1,0 +1,43 @@
+.upcoming__days {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--space-4);
+}
+
+.upcoming__date {
+  margin: 0 0 var(--space-2);
+  font-size: 0.85rem;
+}
+
+.upcoming__group {
+  margin: var(--space-2) 0 var(--space-1);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+}
+
+.link-button:hover {
+  color: var(--color-primary-strong);
+}
+
+.upcoming__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

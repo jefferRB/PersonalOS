@@ -1,7 +1,7 @@
 # PersonalOS - Product, Scope, and Experience
 
-**Version:** 1.1
-**Status:** Milestone 1 Angular walking skeleton
+**Version:** 1.3
+**Status:** Milestone 3 daily operating system
 
 ## 1. Problem
 
@@ -65,68 +65,110 @@ Jefferson:
 - preferences;
 - time zone.
 
+Email changes stay unavailable until confirmation and account-recovery flows exist. An editable
+sign-in address without them is a way to lock a user out of their own account.
+
 ### Today
 
-- local date;
-- upcoming events;
-- three priorities;
-- tasks;
-- habits;
-- calories;
-- quick capture;
-- recommendation;
-- daily close.
+- local date decided by the server;
+- a daily timeline of timed items, with untimed items grouped separately;
+- routines that apply to the day, with their execution state;
+- meals and the calorie total against the target;
+- study recorded for the day;
+- whether the reflection has been written;
+- quick capture for a task, a meal, or a study session;
+- a summary built only from counts the user produced.
+
+Delivered in Milestone 3. There is deliberately no streak, score, or trend: none of them could be
+derived honestly from a single day, and an invented number in a personal record is worse than no
+number at all. Recommendations are deferred until real history exists.
 
 ### Planning
 
 - tasks;
 - events;
-- projects;
-- goals;
 - dates;
 - priorities;
-- rescheduling.
+- rescheduling;
+- a calendar with a month view, a navigable daily agenda, a next-seven-days section, and a day
+  planner with a 15-minute timeline.
 
-### Habits
+Delivered in Milestone 3. Projects and goals are not implemented yet.
 
-- frequency;
-- days;
-- completion check;
-- quantity;
-- duration;
-- rest;
-- reason for missing;
-- consistency;
-- recovery.
+### Routines
+
+- reusable ordered steps;
+- recurrence: daily, weekly, chosen weekdays, monthly;
+- execution recorded per day;
+- workout steps with sets, repetitions, and weight;
+- target beside actual;
+- partial progress and completion;
+- active and inactive state.
+
+Delivered in Milestone 3. A habit is modelled as a routine with one step, so there is one
+recurrence engine rather than two.
 
 ### Nutrition
 
-- versioned goals;
-- meals;
-- foods;
-- portions;
-- calories;
-- macronutrients;
-- daily and weekly summaries.
+- one daily calorie target chosen by the user;
+- optional macronutrient targets;
+- meals grouped by breakfast, lunch, dinner, snack, and other;
+- free-text quantity;
+- calories, with optional protein, carbohydrates, and fat;
+- consumed against target for the day.
+
+Delivered in Milestone 3. PersonalOS records the numbers the user enters and compares them. It
+never proposes a target, never labels a value as healthy or unhealthy, and never gives advice.
+Going over the target shows a negative remainder as a plain fact. There is no food database and no
+external nutrition service. A versioned goal history is not implemented yet.
+
+### Study
+
+- subjects and learning projects;
+- scheduled sessions with a duration;
+- what was studied and where the user now stands;
+- material as a title, a type, and an optional link;
+- a Monday-to-Sunday week view with per-day and weekly totals.
+
+Delivered in Milestone 3. Material is metadata only: a link must be `http` or `https`, the server
+never fetches it, and no file is uploaded.
 
 ### Journal
 
-- free-form entry;
-- morning reflection;
-- evening close;
-- win;
-- problem;
-- cause;
-- lesson;
-- adjustment.
+- one entry per local day;
+- what went well;
+- what went poorly;
+- why it happened;
+- what was learned;
+- what to adjust tomorrow;
+- free-form notes.
+
+Delivered in Milestone 3. Every section is optional, so a single sentence is a complete entry.
+This is the most sensitive record in the product: it is never logged, never cached, never stored
+in the browser, never placed in a URL, and never interpreted by PersonalOS.
+
+### Settings
+
+- profile summary and display name;
+- read-only email until confirmation and recovery flows exist;
+- saved IANA time zone;
+- browser time-zone suggestion;
+- Light, Dark, and System appearance preference.
+
+Appearance is a non-sensitive browser preference. System follows the device, updates when the
+operating-system theme changes, and applies before Angular renders so the page does not flash the
+wrong theme.
 
 ### Weekly review
 
 - plan versus execution;
-- habits;
+- routines;
 - nutrition;
 - patterns;
 - experiment for the next week.
+
+Not implemented yet. It is deliberately deferred until enough real days exist for an aggregate to
+mean something.
 
 ### Reminders
 
@@ -173,17 +215,19 @@ Jefferson:
 
 ## 7. User experience
 
-Future navigation:
+Navigation delivered in Milestone 3:
 
 ```text
 Today
-Plan
-Habits
+Calendar
+Routines
 Nutrition
+Study
 Journal
-Review
 Settings
 ```
+
+A weekly Review destination is added once enough real history exists to aggregate.
 
 Every flow must consider:
 
@@ -209,6 +253,7 @@ Experience requirements:
 - desktop-friendly analysis;
 - predictable navigation;
 - no flash of private content while authentication is unresolved;
+- no flash of the wrong appearance theme when a saved preference exists;
 - clear distinction between unavailable features and empty data.
 
 Angular implementation principles:
@@ -316,51 +361,64 @@ A future vault is intentionally excluded because it requires a separate threat m
 
 ### M2 - Profile and time
 
-- time zone;
-- local date;
+- editable display name;
+- read-only email, with the reason stated in the interface;
+- persisted IANA time zone;
+- browser time-zone suggestion offered as a suggestion only;
+- server-side time-zone validation;
+- local date on Today, rendered in English;
 - abstract clock;
-- profile preferences;
+- profile preferences owned per account;
 - deterministic time tests.
 
-### M3 - Planning
+Delivered. The observable outcome is that a user can name themselves, choose their time zone, and
+see the correct calendar day for that zone, with the values persisted in SQL Server and protected
+by server-side ownership.
 
-- tasks;
-- priorities;
-- minimum Today workflow;
-- server-side ownership;
-- empty, conflict, and validation states.
+### M3 - Daily operating system
 
-### M4 - Habits
+Delivered. This milestone builds the first honest version of every daily module at once, because a
+day is only useful when it can be seen whole:
 
-- definition;
-- recording;
-- consistency;
-- recovery;
-- historical integrity.
+- calendar items of four kinds, timed or untimed, repeating or not, with idempotent per-day
+  completion, reopening, and cancellation;
+- a calendar page with a month grid, a daily agenda, a next-seven-days section, and an accessible
+  day planner;
+- recurring routines with calculated occurrences;
+- workout recording: sets, repetitions, weight, target beside actual;
+- meals, calories, and a user-chosen daily target;
+- study projects, weekly sessions, and safe resource links;
+- one daily reflection per day;
+- an integrated Today screen that reports only what the user actually entered.
 
-### M5 - Nutrition
+The observable outcome is that a user can plan a day, execute it, record what happened across
+training, food, and study, reflect on it, and see all of it in one place, with every record owned
+by exactly one account.
 
-- goals;
-- meals;
-- calories;
-- macronutrients;
-- safe boundaries and non-medical wording.
+Habits as a separate module were folded into routines: a habit is a routine with one step, and a
+second recurrence engine would have had to be tested twice to be trusted once.
 
-### M6 - Journal
+### M4 - Weekly review
 
-- entries;
-- daily close;
-- privacy;
-- deliberate logging and caching restrictions.
+- aggregates across the modules delivered in M3;
+- plan against execution;
+- patterns;
+- one experiment for the next week.
 
-### M7 - Review
+### M5 - Trends and export
 
-- aggregates;
-- trends;
-- explainable recommendations;
-- weekly experiment.
+- honest history once enough days exist;
+- export;
+- deletion path.
 
-### M8 - PWA and reminders
+### M6 - Refinement
+
+- delivered first slice: Light, Dark, and System themes with a Settings appearance control;
+- recurrence exceptions if real use demands them;
+- richer nutrition entry;
+- study material organization.
+
+### M7 - PWA and reminders
 
 - installation;
 - limited offline support;
@@ -369,7 +427,7 @@ A future vault is intentionally excluded because it requires a separate threat m
 - private-data caching review;
 - quiet hours.
 
-### M9 - Hardening
+### M8 - Hardening
 
 - email confirmation;
 - account recovery;

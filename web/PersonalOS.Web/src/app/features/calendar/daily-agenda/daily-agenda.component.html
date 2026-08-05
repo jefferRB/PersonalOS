@@ -1,0 +1,111 @@
+<section class="card agenda" aria-labelledby="agenda-title">
+  <div class="agenda__header">
+    <button
+      class="icon-button"
+      type="button"
+      aria-label="Previous day"
+      (click)="dayOffset.emit(-1)"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+    </button>
+
+    <div class="agenda__heading">
+      <h2 id="agenda-title">{{ title() }}</h2>
+      @if (showDateSubtitle()) {
+        <p class="agenda__date">{{ dateLabel() }}</p>
+      }
+    </div>
+
+    <button class="icon-button" type="button" aria-label="Next day" (click)="dayOffset.emit(1)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+    </button>
+  </div>
+
+  <div class="agenda__actions">
+    @if (!isToday()) {
+      <button
+        class="button button--secondary button--small"
+        type="button"
+        [disabled]="todayDate() === null"
+        (click)="goToToday.emit()"
+      >
+        Today
+      </button>
+    }
+    <button class="button button--primary button--small" type="button" (click)="planDay.emit()">
+      Plan this day
+    </button>
+  </div>
+
+  <app-occurrence-filters
+    idPrefix="agenda-filter"
+    label="Agenda filters"
+    [filter]="filter()"
+    [viewOptions]="viewOptions"
+    [isDefault]="isFilterDefault()"
+    [hiddenCount]="hiddenCount()"
+    (filterChange)="filterChange.emit($event)"
+    (cleared)="filterCleared.emit()"
+  />
+
+  @if (isLoading()) {
+    <p class="card__hint" role="status" aria-live="polite">Loading this day.</p>
+  }
+
+  @if (error()) {
+    <div class="alert alert--error" role="alert">
+      <p>{{ error() }}</p>
+      <button class="button button--secondary button--small" type="button" (click)="retry.emit()">
+        Try again
+      </button>
+    </div>
+  }
+
+  <div class="agenda__scroll">
+    @if (isEmpty()) {
+      <div class="empty">
+        @if (isFilteredToNothing()) {
+          <p>Nothing on this day matches the current filters.</p>
+          <p>Clear them to see everything scheduled.</p>
+        } @else {
+          <p>Nothing is scheduled on this day.</p>
+          <p>Select <strong>Plan this day</strong> to add something.</p>
+        }
+      </div>
+    }
+
+    @if (anytime().length > 0) {
+      <h3 class="agenda__group">Anytime</h3>
+      <ul class="agenda__list">
+        @for (occurrence of anytime(); track occurrence.planningItemId) {
+          <li>
+            <app-activity-card
+              [occurrence]="occurrence"
+              [todayDate]="todayDate()"
+              [isBusy]="busyItemId() === occurrence.planningItemId"
+              (open)="open.emit($event)"
+              (statusChange)="statusChange.emit($event)"
+            />
+          </li>
+        }
+      </ul>
+    }
+
+    @if (scheduled().length > 0) {
+      <h3 class="agenda__group">Scheduled</h3>
+      <ul class="agenda__list">
+        @for (occurrence of scheduled(); track occurrence.planningItemId) {
+          <li>
+            <app-activity-card
+              [occurrence]="occurrence"
+              [todayDate]="todayDate()"
+              [isBusy]="busyItemId() === occurrence.planningItemId"
+              (open)="open.emit($event)"
+              (statusChange)="statusChange.emit($event)"
+            />
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</section>

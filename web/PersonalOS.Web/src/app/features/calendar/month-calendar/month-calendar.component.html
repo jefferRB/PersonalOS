@@ -1,0 +1,174 @@
+<section class="card month" aria-labelledby="month-title">
+  <div class="month__bar month__bar--views">
+    <div class="month__group" role="group" aria-label="Calendar views">
+      <button class="button button--secondary button--small" type="button" disabled>
+        Month view
+      </button>
+      <button class="button button--secondary button--small" type="button" (click)="planDay.emit()">
+        Open day planner
+      </button>
+    </div>
+
+    <form class="month__group month__group--settings" [formGroup]="displayForm" (ngSubmit)="onApplyDisplay()">
+      <div class="month__field">
+        <label class="month__label" for="toolbar-start">Start</label>
+        <input id="toolbar-start" class="input input--time" type="time" formControlName="startTime" />
+      </div>
+
+      <div class="month__field">
+        <label class="month__label" for="toolbar-end">End</label>
+        <input id="toolbar-end" class="input input--time" type="time" formControlName="endTime" />
+      </div>
+
+      <div class="month__field">
+        <label class="month__label" for="toolbar-interval">Interval</label>
+        <select id="toolbar-interval" class="select select--compact" formControlName="slotMinutes">
+          @for (option of slotOptions; track option) {
+            <option [value]="option">{{ option }} min</option>
+          }
+        </select>
+      </div>
+
+      <button
+        class="button button--secondary button--small"
+        type="submit"
+        [disabled]="isSavingDisplay()"
+      >
+        {{ isSavingDisplay() ? 'Saving' : 'Apply' }}
+      </button>
+    </form>
+  </div>
+
+  @if (displayError()) {
+    <p class="alert alert--error month__alert" role="alert">{{ displayError() }}</p>
+  }
+
+  <div class="month__bar month__bar--navigation">
+    <button
+      class="icon-button"
+      type="button"
+      aria-label="Previous month"
+      (click)="monthOffset.emit(-1)"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+    </button>
+
+    <h2 id="month-title" class="month__title">{{ monthTitle() }}</h2>
+
+    <div class="month__pickers">
+      <label class="visually-hidden" for="toolbar-month">Month</label>
+      <select
+        id="toolbar-month"
+        class="select select--compact"
+        [value]="anchor().month"
+        (change)="onMonthChange($any($event.target).value)"
+      >
+        @for (option of months; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+
+      <label class="visually-hidden" for="toolbar-year">Year</label>
+      <select
+        id="toolbar-year"
+        class="select select--compact"
+        [value]="anchor().year"
+        (change)="onYearChange($any($event.target).value)"
+      >
+        @for (year of years(); track year) {
+          <option [value]="year">{{ year }}</option>
+        }
+      </select>
+    </div>
+
+    <button
+      class="icon-button"
+      type="button"
+      aria-label="Next month"
+      (click)="monthOffset.emit(1)"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <p class="card__hint" role="status" aria-live="polite">Loading this month.</p>
+  }
+
+  @if (error()) {
+    <div class="alert alert--error" role="alert">
+      <p>{{ error() }}</p>
+      <button class="button button--secondary button--small" type="button" (click)="retry.emit()">
+        Try again
+      </button>
+    </div>
+  }
+
+  <div class="month__weekdays" aria-hidden="true">
+    @for (weekday of weekdayHeaders; track weekday.short) {
+      <span>{{ weekday.short }}</span>
+    }
+  </div>
+
+  <div
+    class="month__grid"
+    role="grid"
+    aria-labelledby="month-title"
+    (keydown)="onDayKeydown($event)"
+  >
+    @for (cell of cells(); track cellKey(cell)) {
+      @let day = asDay(cell);
+
+      @if (day) {
+        @let summary = summaryFor(day.date);
+
+        <button
+          type="button"
+          role="gridcell"
+          class="day"
+          [class.day--selected]="isSelected(day.date)"
+          [class.day--today]="isToday(day.date)"
+          [attr.aria-selected]="isSelected(day.date)"
+          [attr.aria-current]="isToday(day.date) ? 'date' : null"
+          [attr.tabindex]="isFocusable(day.date) ? 0 : -1"
+          [attr.aria-label]="dayLabel(day.date)"
+          (click)="daySelected.emit(day.date)"
+        >
+          <span class="day__top" aria-hidden="true">
+            <span class="day__number">{{ day.dayOfMonth }}</span>
+            <span class="day__flags">
+              @if (summary && summary.failedCount > 0) {
+                <span class="day__failed" title="Includes something that was not done">
+                  <svg viewBox="0 0 24 24"><path d="M12 8v5M12 16v.5" /></svg>
+                </span>
+              }
+              @if (summary && summary.hasHighPriority) {
+                <span class="day__important" title="Includes something important">!</span>
+              }
+            </span>
+          </span>
+
+          @if (summary) {
+            <span class="day__marks" aria-hidden="true">
+              @for (kind of summary.kinds; track kind.kind) {
+                <span class="day__kind" [attr.data-kind]="kind.kind" [title]="kindTitle(kind)">
+                  <svg viewBox="0 0 24 24"><path [attr.d]="iconPathFor(kind)" /></svg>
+                  <span class="day__kind-count">{{ kind.count }}</span>
+                </span>
+              }
+            </span>
+            <span class="day__count" aria-hidden="true">{{ summary.totalCount }}</span>
+          }
+        </button>
+      } @else {
+        <!-- Blank space that keeps the weekday columns aligned. It is not a date, so it is hidden
+             from assistive technology and cannot be reached or clicked. -->
+        <span class="day day--placeholder" aria-hidden="true"></span>
+      }
+    }
+  </div>
+
+  <p class="card__hint">
+    Use the arrow keys to move between days, Home and End for the first and last day of the month.
+  </p>
+</section>

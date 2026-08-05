@@ -1,0 +1,184 @@
+<form class="editor" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <h3 id="activity-editor-title">{{ isEditing() ? 'Edit activity' : 'New activity' }}</h3>
+
+  @if (formError() || localError()) {
+    <p class="alert alert--error" role="alert">{{ formError() ?? localError() }}</p>
+  }
+
+  <div class="field">
+    <label class="field__label" for="activity-title">Title</label>
+    <input
+      id="activity-title"
+      class="input"
+      type="text"
+      formControlName="title"
+      autocomplete="off"
+      [attr.aria-invalid]="form.controls.title.touched && form.controls.title.invalid"
+      [attr.aria-describedby]="fieldError('title') ? 'activity-title-error' : null"
+    />
+    @if (fieldError('title')) {
+      <p class="field__error" id="activity-title-error">{{ fieldError('title') }}</p>
+    }
+  </div>
+
+  <div class="form-grid">
+    <div class="field">
+      <label class="field__label" for="activity-kind">Kind</label>
+      <select id="activity-kind" class="select" formControlName="kind">
+        @for (option of kinds; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+      <p class="field__hint">Decides the colour and icon on the calendar.</p>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="activity-category">Category</label>
+      <select id="activity-category" class="select" formControlName="category">
+        @for (option of categories; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+      <p class="field__hint">Which area of life this belongs to.</p>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="activity-priority">Priority</label>
+      <select id="activity-priority" class="select" formControlName="priority">
+        @for (option of priorities; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+      <p class="field__hint">High adds an Important badge and reaches the next-7-days list.</p>
+    </div>
+  </div>
+
+  <div class="form-grid">
+    <div class="field">
+      <label class="field__label" for="activity-start-date">Date</label>
+      <input
+        id="activity-start-date"
+        class="input"
+        type="date"
+        formControlName="startDate"
+        [attr.aria-describedby]="fieldError('startDate') ? 'activity-start-date-error' : null"
+      />
+      @if (fieldError('startDate')) {
+        <p class="field__error" id="activity-start-date-error">{{ fieldError('startDate') }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="activity-start-time">Start time</label>
+      <input id="activity-start-time" class="input" type="time" formControlName="startTime" />
+      <p class="field__hint">Leave empty for an anytime activity.</p>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="activity-end-time">End time</label>
+      <input
+        id="activity-end-time"
+        class="input"
+        type="time"
+        formControlName="endTime"
+        [attr.aria-describedby]="fieldError('endTime') ? 'activity-end-time-error' : null"
+      />
+      @if (fieldError('endTime')) {
+        <p class="field__error" id="activity-end-time-error">{{ fieldError('endTime') }}</p>
+      }
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="field__label" for="activity-description">Notes</label>
+    <textarea
+      id="activity-description"
+      class="textarea"
+      formControlName="description"
+    ></textarea>
+  </div>
+
+  @if (isPatternLocked()) {
+    <p class="alert alert--warning" role="status">
+      You have already completed or cancelled a day of this series, so how often it repeats and when
+      it starts can no longer change. You can still end it earlier, edit its content, or delete it.
+    </p>
+  }
+
+  <div class="field">
+    <label class="field__label" for="activity-frequency">Repeat</label>
+    <select id="activity-frequency" class="select" formControlName="frequency">
+      @for (option of frequencies; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+    @if (fieldError('recurrence')) {
+      <p class="field__error">{{ fieldError('recurrence') }}</p>
+    }
+  </div>
+
+  @if (isRepeating()) {
+    <div class="form-grid">
+      <div class="field">
+        <label class="field__label" for="activity-interval">Every</label>
+        <input
+          id="activity-interval"
+          class="input"
+          type="number"
+          inputmode="numeric"
+          min="1"
+          max="365"
+          formControlName="interval"
+        />
+        <p class="field__hint">1 means every time, 2 means every other time.</p>
+        @if (fieldError('recurrence.interval')) {
+          <p class="field__error">{{ fieldError('recurrence.interval') }}</p>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="activity-end-date">Repeat until</label>
+        <input id="activity-end-date" class="input" type="date" formControlName="endDate" />
+        <p class="field__hint">Leave empty to repeat with no end.</p>
+        @if (fieldError('recurrence.endDate')) {
+          <p class="field__error">{{ fieldError('recurrence.endDate') }}</p>
+        }
+      </div>
+    </div>
+
+    @if (isWeekly()) {
+      <fieldset class="weekdays">
+        <legend class="field__label">Weekdays</legend>
+        <p class="field__hint">Leave all clear to repeat on the weekday of the start date.</p>
+        @for (weekday of weekdays; track weekday) {
+          <label class="weekday">
+            <input
+              type="checkbox"
+              [checked]="isWeekdaySelected(weekday)"
+              [disabled]="isPatternLocked()"
+              (change)="toggleWeekday(weekday)"
+            />
+            <span>{{ weekday }}</span>
+          </label>
+        }
+      </fieldset>
+    }
+  }
+
+  <div class="form-actions">
+    <button class="button button--primary" type="submit" [disabled]="isSaving()">
+      {{ isSaving() ? 'Saving' : 'Save activity' }}
+    </button>
+    <button class="button button--ghost" type="button" (click)="cancel.emit()">Cancel</button>
+    @if (isEditing()) {
+      <button
+        class="button button--danger button--small editor__delete"
+        type="button"
+        [disabled]="isDeleting()"
+        (click)="onDelete()"
+      >
+        {{ isDeleting() ? 'Deleting' : 'Delete series' }}
+      </button>
+    }
+  </div>
+</form>

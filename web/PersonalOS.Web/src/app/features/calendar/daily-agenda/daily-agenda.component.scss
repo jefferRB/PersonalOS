@@ -1,0 +1,111 @@
+.agenda {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 0;
+}
+
+// Previous day, centred title, next day. The heading takes the middle column and centres inside it,
+// so the two arrows stay pinned to the edges however long the title is.
+.agenda__header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.agenda__heading {
+  min-width: 0;
+  text-align: center;
+}
+
+.agenda__heading h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.agenda__date {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.agenda__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.agenda__group {
+  position: sticky;
+  top: 0;
+  margin: var(--space-3) 0 var(--space-2);
+  padding: var(--space-1) 0;
+  background: var(--color-surface);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.agenda__group:first-child {
+  margin-top: 0;
+}
+
+.agenda__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// The activity area takes whatever height the workspace row gives it and scrolls inside that, so
+// the agenda column ends level with the month grid without either card naming a pixel height. The
+// max-height is only a fallback for a browser that cannot resolve the stretched row.
+.agenda__scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 12rem;
+  max-height: min(60vh, 34rem);
+  padding-right: var(--space-1);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.agenda__scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.agenda__scroll::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--color-border);
+  background-clip: content-box;
+}
+
+.agenda .icon-button svg {
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+// Stacked under the month grid there is no column to match, so the list runs to its natural height
+// and the page scrolls once rather than twice.
+@media (max-width: 60rem) {
+  .agenda__scroll {
+    overflow-y: visible;
+    max-height: none;
+  }
+
+  .agenda__group {
+    position: static;
+  }
+}

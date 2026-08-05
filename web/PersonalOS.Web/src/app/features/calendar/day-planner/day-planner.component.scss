@@ -1,0 +1,172 @@
+.planner {
+  width: min(78rem, 100vw);
+  max-width: 100vw;
+  height: min(50rem, 100vh);
+  max-height: 100vh;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-soft);
+}
+
+.planner::backdrop {
+  background: rgb(23 33 27 / 48%);
+}
+
+.planner__shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+// The header stays put while the day scrolls, so navigating between days never means scrolling back
+// up to find the controls.
+.planner__header {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.planner__nav,
+.planner__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.planner__title {
+  flex: 1 1 12rem;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.planner__header-actions {
+  margin-left: auto;
+}
+
+// The timeline owns the dialog. The editor is an overlay drawer on top of it rather than a second
+// permanent column, so a planner with no editor open is all timeline.
+.planner__body {
+  display: grid;
+  position: relative;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+}
+
+// One vertical scroll container for the whole day. Nesting a second one made the wheel behave
+// differently depending on where the pointer happened to be.
+.planner__scroll {
+  overflow-y: auto;
+  padding: var(--space-4);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.planner__scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.planner__scroll::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--color-border);
+  background-clip: content-box;
+}
+
+.planner__scroll h3 {
+  margin: 0 0 var(--space-2);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.planner__anytime,
+.planner__outside {
+  margin-bottom: var(--space-5);
+}
+
+.planner__outside {
+  padding: var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+}
+
+.planner__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.planner__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  background: rgb(23 33 27 / 22%);
+  cursor: pointer;
+}
+
+.planner__editor {
+  display: flex;
+  position: absolute;
+  z-index: 2;
+  inset: 0 0 0 auto;
+  flex-direction: column;
+  overflow-y: auto;
+  width: min(26rem, 100%);
+  padding: var(--space-4);
+  border-left: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: -12px 0 30px rgb(23 33 27 / 12%);
+  scrollbar-width: thin;
+}
+
+// On a small screen the dialog takes the whole viewport and the editor covers it rather than
+// squeezing beside it. Two columns on a phone would leave both too narrow to read.
+@media (max-width: 60rem) {
+  .planner {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .planner__editor {
+    width: 100%;
+    border-left: 0;
+  }
+
+  .planner__title {
+    order: -1;
+    flex-basis: 100%;
+  }
+
+  .planner__header-actions {
+    margin-left: 0;
+  }
+
+  .planner__nav,
+  .planner__header-actions {
+    flex: 1 1 auto;
+  }
+}

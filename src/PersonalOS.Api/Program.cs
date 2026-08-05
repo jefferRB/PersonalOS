@@ -1,5 +1,6 @@
 using System.Threading.RateLimiting;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
@@ -46,10 +47,19 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddScoped<ValidateAntiforgeryTokenForUnsafeMethodsFilter>();
-builder.Services.AddControllers(options =>
-{
-    options.Filters.AddService<ValidateAntiforgeryTokenForUnsafeMethodsFilter>();
-});
+builder.Services
+    .AddControllers(options =>
+    {
+        options.Filters.AddService<ValidateAntiforgeryTokenForUnsafeMethodsFilter>();
+    })
+    .AddJsonOptions(options =>
+    {
+        // The daily modules use enumerations such as meal type and recurrence frequency. Sending
+        // them as names keeps the contract readable and stable: inserting a new value never shifts
+        // the meaning of an existing one, which a numeric contract would allow.
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+    });
 
 builder.Services.AddAntiforgery(options =>
 {
@@ -117,6 +127,42 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0,
                 AutoReplenishment = true,
             }));
+
+    // Profile updates are user-initiated and infrequent. The limit stops an abusive write loop
+    // without interfering with normal editing.
+    options.AddPolicy("profile", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            GetClientPartitionKey(httpContext),
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 30,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            }));
+
+    // The daily modules are limited on writes only. Reading Today, the calendar, or a routine is
+    // ordinary navigation and stays unlimited: a limit there would make the application feel
+    // broken long before it stopped anything abusive.
+    //
+    // Calendar writes are the busiest: checking off a morning of occurrences is a burst of requests
+    // from one honest user, so the limit is the highest of the group.
+    AddWritePolicy(options, "calendar", permitLimit: 120);
+
+    // A routine session is saved after each step, so recording a workout is also bursty.
+    AddWritePolicy(options, "routines", permitLimit: 120);
+
+    // Meals are entered a few times a day, with edits.
+    AddWritePolicy(options, "nutrition", permitLimit: 90);
+
+    // Study sessions are recorded once per block.
+    AddWritePolicy(options, "study", permitLimit: 90);
+
+    // The journal is written once per day and edited while writing. The limit is the strictest of
+    // the group because this endpoint carries the most sensitive text and needs the least
+    // throughput, but it still allows a save every two seconds for a full minute.
+    AddWritePolicy(options, "journal", permitLimit: 30);
 });
 
 builder.Services.AddHealthChecks()
@@ -174,6 +220,22 @@ app.Run();
 
 static string GetClientPartitionKey(HttpContext httpContext) =>
     httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+/// <summary>
+/// Registers a fixed one-minute window policy for the write endpoints of a daily module.
+/// </summary>
+static void AddWritePolicy(RateLimiterOptions options, string policyName, int permitLimit) =>
+    options.AddPolicy(policyName, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            GetClientPartitionKey(httpContext),
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            }));
 
 static Task WriteAuthenticationProblemAsync(
     HttpContext httpContext,

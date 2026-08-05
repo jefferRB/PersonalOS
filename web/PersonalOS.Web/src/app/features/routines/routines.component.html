@@ -1,0 +1,188 @@
+<section class="page" aria-labelledby="routines-title">
+  <div class="page__header">
+    <div class="page__title">
+      <h1 id="routines-title">Routines</h1>
+      <p>
+        Reusable sequences you repeat: a morning start, a Monday workout, a study block. Open a
+        routine to build its steps and to record what you actually did.
+      </p>
+    </div>
+
+    <div class="page__actions">
+      <button class="button button--primary" type="button" (click)="openForm()">
+        New routine
+      </button>
+    </div>
+  </div>
+
+  @if (loadError()) {
+    <div class="alert alert--error" role="alert">
+      <p>{{ loadError() }}</p>
+      <button class="button button--secondary" type="button" (click)="load()">Try again</button>
+    </div>
+  }
+
+  @if (isFormOpen()) {
+    <section class="card" aria-labelledby="new-routine-title">
+      <div class="card__header">
+        <h2 id="new-routine-title">New routine</h2>
+        <button class="button button--ghost button--small" type="button" (click)="closeForm()">
+          Cancel
+        </button>
+      </div>
+
+      @if (formError()) {
+        <p class="alert alert--error" role="alert">{{ formError() }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="form-grid">
+          <div class="field">
+            <label class="field__label" for="routine-name">Name</label>
+            <input
+              id="routine-name"
+              class="input"
+              type="text"
+              formControlName="name"
+              autocomplete="off"
+              [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
+            />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="routine-category">Category</label>
+            <select id="routine-category" class="select" formControlName="category">
+              @for (option of categories; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="routine-frequency">Repeat</label>
+            <select id="routine-frequency" class="select" formControlName="frequency">
+              @for (option of frequencies; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="routine-interval">Every</label>
+            <input
+              id="routine-interval"
+              class="input"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              formControlName="interval"
+            />
+          </div>
+        </div>
+
+        @if (needsWeekdays()) {
+          <fieldset class="weekdays">
+            <legend class="field__label">Weekdays</legend>
+            @for (weekday of weekdays; track weekday) {
+              <label class="weekday">
+                <input
+                  type="checkbox"
+                  [checked]="isWeekdaySelected(weekday)"
+                  (change)="toggleWeekday(weekday)"
+                />
+                <span>{{ weekday }}</span>
+              </label>
+            }
+          </fieldset>
+        }
+
+        <div class="field">
+          <label class="field__label" for="routine-description">Description</label>
+          <textarea id="routine-description" class="textarea" formControlName="description"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button class="button button--primary" type="submit" [disabled]="isSaving()">
+            {{ isSaving() ? 'Creating' : 'Create and add steps' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  @if (isLoading()) {
+    <p class="card__hint" role="status" aria-live="polite" aria-busy="true">Loading routines.</p>
+  } @else if (routines().length === 0) {
+    <div class="empty">
+      <p>You have no routines yet.</p>
+      <p>Create one to repeat a workout, a study block, or a morning sequence.</p>
+    </div>
+  } @else {
+    <section class="card" aria-labelledby="active-routines-title">
+      <div class="card__header">
+        <h2 id="active-routines-title">Active</h2>
+      </div>
+
+      @if (activeRoutines().length === 0) {
+        <div class="empty"><p>No active routines.</p></div>
+      } @else {
+        <ul class="record-list">
+          @for (routine of activeRoutines(); track routine.id) {
+            <li class="record">
+              <div class="record__main">
+                <p class="record__title">{{ routine.name }}</p>
+                <p class="record__meta">
+                  <span class="chip chip--done">Active</span>
+                  <span>{{ recurrenceLabel(routine) }}</span>
+                  <span>{{ routine.steps.length }} steps</span>
+                  <span class="meta-enum">{{ routine.category }}</span>
+                </p>
+              </div>
+              <div class="record__actions">
+                <a
+                  class="button button--secondary button--small"
+                  [routerLink]="['/app/routines', routine.id]"
+                >
+                  Open<span class="visually-hidden"> {{ routine.name }}</span>
+                </a>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    @if (inactiveRoutines().length > 0) {
+      <section class="card" aria-labelledby="inactive-routines-title">
+        <div class="card__header">
+          <h2 id="inactive-routines-title">Inactive</h2>
+        </div>
+        <p class="card__hint">
+          An inactive routine keeps its history but stops appearing on Today and on the calendar.
+        </p>
+        <ul class="record-list">
+          @for (routine of inactiveRoutines(); track routine.id) {
+            <li class="record">
+              <div class="record__main">
+                <p class="record__title">{{ routine.name }}</p>
+                <p class="record__meta">
+                  <span class="chip">Inactive</span>
+                  <span>{{ recurrenceLabel(routine) }}</span>
+                  <span>{{ routine.steps.length }} steps</span>
+                </p>
+              </div>
+              <div class="record__actions">
+                <a
+                  class="button button--secondary button--small"
+                  [routerLink]="['/app/routines', routine.id]"
+                >
+                  Open<span class="visually-hidden"> {{ routine.name }}</span>
+                </a>
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</section>

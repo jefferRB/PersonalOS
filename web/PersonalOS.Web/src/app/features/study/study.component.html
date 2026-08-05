@@ -1,0 +1,402 @@
+<section class="page" aria-labelledby="study-title">
+  <div class="page__header">
+    <div class="page__title">
+      <h1 id="study-title">Study</h1>
+      <p>
+        Subjects you are working through, the material you collected, and what you actually
+        studied this week. Material is stored as a title and a link; nothing is uploaded.
+      </p>
+    </div>
+
+    <div class="page__actions">
+      <button class="button button--secondary" type="button" (click)="openProjectForm()">
+        New project
+      </button>
+      <button class="button button--primary" type="button" (click)="openSessionForm()">
+        Record session
+      </button>
+    </div>
+  </div>
+
+  @if (loadError()) {
+    <div class="alert alert--error" role="alert">
+      <p>{{ loadError() }}</p>
+      <button class="button button--secondary" type="button" (click)="load()">Try again</button>
+    </div>
+  }
+
+  @if (saveSuccess()) {
+    <p class="alert alert--success" role="status" aria-live="polite">{{ saveSuccess() }}</p>
+  }
+
+  @if (isProjectFormOpen()) {
+    <section class="card" aria-labelledby="project-form-title">
+      <div class="card__header">
+        <h2 id="project-form-title">
+          {{ editingProjectId() === null ? 'New project' : 'Edit project' }}
+        </h2>
+        <button class="button button--ghost button--small" type="button" (click)="closeProjectForm()">
+          Cancel
+        </button>
+      </div>
+
+      @if (formError()) {
+        <p class="alert alert--error" role="alert">{{ formError() }}</p>
+      }
+
+      <form [formGroup]="projectForm" (ngSubmit)="saveProject()">
+        <div class="form-grid">
+          <div class="field">
+            <label class="field__label" for="project-name">Name</label>
+            <input
+              id="project-name"
+              class="input"
+              type="text"
+              formControlName="name"
+              autocomplete="off"
+              [attr.aria-invalid]="
+                projectForm.controls.name.touched && projectForm.controls.name.invalid
+              "
+            />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="project-status">Status</label>
+            <select id="project-status" class="select" formControlName="status">
+              @for (option of statuses; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="project-description">Description</label>
+          <textarea id="project-description" class="textarea" formControlName="description"></textarea>
+        </div>
+
+        <div class="steps-header">
+          <h3>Material</h3>
+          <button
+            class="button button--secondary button--small"
+            type="button"
+            (click)="addResource()"
+          >
+            Add resource
+          </button>
+        </div>
+
+        @if (resourceControls.length === 0) {
+          <p class="card__hint">No material attached yet.</p>
+        } @else {
+          <ul class="resource-list" formArrayName="resources">
+            @for (control of resourceControls.controls; track control; let index = $index) {
+              <li class="resource" [formGroupName]="index">
+                <div class="form-grid">
+                  <div class="field">
+                    <label class="field__label" [attr.for]="'resource-title-' + index">Title</label>
+                    <input
+                      [id]="'resource-title-' + index"
+                      class="input"
+                      type="text"
+                      formControlName="title"
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" [attr.for]="'resource-type-' + index">Type</label>
+                    <select
+                      [id]="'resource-type-' + index"
+                      class="select"
+                      formControlName="resourceType"
+                    >
+                      @for (option of resourceTypes; track option.value) {
+                        <option [value]="option.value">{{ option.label }}</option>
+                      }
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" [attr.for]="'resource-url-' + index">Link</label>
+                    <input
+                      [id]="'resource-url-' + index"
+                      class="input"
+                      type="url"
+                      inputmode="url"
+                      placeholder="https://"
+                      formControlName="externalUrl"
+                      [attr.aria-invalid]="control.controls.externalUrl.invalid"
+                    />
+                    @if (control.controls.externalUrl.invalid) {
+                      <p class="field__error">Enter a link that starts with http:// or https://.</p>
+                    }
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="field__label" [attr.for]="'resource-notes-' + index">Note</label>
+                  <input
+                    [id]="'resource-notes-' + index"
+                    class="input"
+                    type="text"
+                    formControlName="notes"
+                  />
+                </div>
+
+                <div class="record__actions">
+                  <button
+                    class="button button--danger button--small"
+                    type="button"
+                    (click)="removeResource(index)"
+                  >
+                    Remove<span class="visually-hidden"> resource {{ index + 1 }}</span>
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+
+        <div class="form-actions">
+          <button class="button button--primary" type="submit" [disabled]="isSaving()">
+            {{ isSaving() ? 'Saving' : 'Save project' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  @if (isSessionFormOpen()) {
+    <section class="card" aria-labelledby="session-form-title">
+      <div class="card__header">
+        <h2 id="session-form-title">
+          {{ editingSessionId() === null ? 'Record a session' : 'Edit session' }}
+        </h2>
+        <button class="button button--ghost button--small" type="button" (click)="closeSessionForm()">
+          Cancel
+        </button>
+      </div>
+
+      @if (formError()) {
+        <p class="alert alert--error" role="alert">{{ formError() }}</p>
+      }
+
+      @if (projects().length === 0) {
+        <div class="empty">
+          <p>Create a study project first, then record sessions against it.</p>
+        </div>
+      } @else {
+        <form [formGroup]="sessionForm" (ngSubmit)="saveSession()">
+          <div class="form-grid">
+            <div class="field">
+              <label class="field__label" for="session-project">Project</label>
+              <select id="session-project" class="select" formControlName="studyProjectId">
+                @for (project of projects(); track project.id) {
+                  <option [value]="project.id">{{ project.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="session-date">Day</label>
+              <input id="session-date" class="input" type="date" formControlName="localDate" />
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="session-start">Start time</label>
+              <input id="session-start" class="input" type="time" formControlName="startTime" />
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="session-minutes">Minutes</label>
+              <input
+                id="session-minutes"
+                class="input"
+                type="number"
+                inputmode="numeric"
+                min="1"
+                formControlName="durationMinutes"
+                [attr.aria-invalid]="
+                  sessionForm.controls.durationMinutes.touched
+                  && sessionForm.controls.durationMinutes.invalid
+                "
+              />
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="session-summary">What you studied</label>
+            <textarea id="session-summary" class="textarea" formControlName="summary"></textarea>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="session-progress">Progress note</label>
+            <textarea id="session-progress" class="textarea" formControlName="progressNote"></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button class="button button--primary" type="submit" [disabled]="isSaving()">
+              {{ isSaving() ? 'Saving' : 'Save session' }}
+            </button>
+          </div>
+        </form>
+      }
+    </section>
+  }
+
+  <section class="card" aria-labelledby="week-title">
+    <div class="card__header">
+      <h2 id="week-title">Week of {{ weekLabel() }}</h2>
+      <div class="week__nav">
+        <span class="chip">{{ minutesLabel(weekMinutes()) }} this week</span>
+        <button
+          class="button button--secondary button--small"
+          type="button"
+          aria-label="Previous week"
+          (click)="goToPreviousWeek()"
+        >
+          Previous
+        </button>
+        <button class="button button--secondary button--small" type="button" (click)="goToThisWeek()">
+          This week
+        </button>
+        <button
+          class="button button--secondary button--small"
+          type="button"
+          aria-label="Next week"
+          (click)="goToNextWeek()"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <p class="card__hint" role="status" aria-live="polite" aria-busy="true">Loading this week.</p>
+    } @else {
+      <ul class="week-grid">
+        @for (day of week(); track day.date) {
+          <li class="week-day" [class.week-day--today]="isToday(day.date)">
+            <h3>
+              {{ day.weekdayName }}
+              <span class="week-day__date">{{ day.label }}</span>
+            </h3>
+            <p class="week-day__total">{{ minutesLabel(day.minutes) }}</p>
+
+            @if (day.sessions.length === 0) {
+              <p class="week-day__empty">Nothing recorded.</p>
+            } @else {
+              <ul class="week-day__sessions">
+                @for (session of day.sessions; track session.id) {
+                  <li>
+                    <p class="record__title">{{ session.projectName }}</p>
+                    <p class="record__meta">
+                      <span class="chip">{{ minutesLabel(session.durationMinutes) }}</span>
+                    </p>
+                    @if (session.summary) {
+                      <p class="record__meta">{{ session.summary }}</p>
+                    }
+                    @if (session.progressNote) {
+                      <p class="record__meta">{{ session.progressNote }}</p>
+                    }
+                    <div class="record__actions">
+                      <button
+                        class="button button--secondary button--small"
+                        type="button"
+                        (click)="openSessionForm(session)"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        class="button button--danger button--small"
+                        type="button"
+                        [disabled]="pendingSessionId() !== null"
+                        (click)="deleteSession(session)"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <section class="card" aria-labelledby="projects-title">
+    <div class="card__header">
+      <h2 id="projects-title">Projects</h2>
+    </div>
+
+    @if (projects().length === 0) {
+      <div class="empty">
+        <p>You have no study projects yet.</p>
+        <p>Create one to group your sessions and your material.</p>
+      </div>
+    } @else {
+      <ul class="record-list">
+        @for (project of projects(); track project.id) {
+          <li class="record">
+            <div class="record__main">
+              <p class="record__title">{{ project.name }}</p>
+              <p class="record__meta">
+                <span class="chip chip--enum">{{ project.status }}</span>
+                <span>
+                  {{ project.resources.length }}
+                  {{ project.resources.length === 1 ? 'resource' : 'resources' }}
+                </span>
+              </p>
+              @if (project.description) {
+                <p class="record__meta">{{ project.description }}</p>
+              }
+
+              @if (selectedProject()?.id === project.id && project.resources.length > 0) {
+                <ul class="resource-links">
+                  @for (resource of project.resources; track resource.id) {
+                    <li>
+                      <span class="chip chip--enum">{{ resource.resourceType }}</span>
+                      @if (resource.externalUrl) {
+                        <a
+                          [href]="resource.externalUrl"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          >{{ resource.title }}</a
+                        >
+                      } @else {
+                        <span>{{ resource.title }}</span>
+                      }
+                      @if (resource.notes) {
+                        <span class="resource-links__note">{{ resource.notes }}</span>
+                      }
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+            <div class="record__actions">
+              <button
+                class="button button--secondary button--small"
+                type="button"
+                [attr.aria-expanded]="selectedProject()?.id === project.id"
+                (click)="selectProject(project)"
+              >
+                {{ selectedProject()?.id === project.id ? 'Hide material' : 'Show material' }}
+                <span class="visually-hidden">{{ project.name }}</span>
+              </button>
+              <button
+                class="button button--secondary button--small"
+                type="button"
+                (click)="openProjectForm(project)"
+              >
+                Edit<span class="visually-hidden"> {{ project.name }}</span>
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</section>

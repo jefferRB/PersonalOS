@@ -52,6 +52,18 @@ describe('ApplicationShellComponent', () => {
     expect(query<HTMLAnchorElement>('.skip-link').getAttribute('href')).toBe('#main-content');
   });
 
+  it('updates the header when the saved display name changes', () => {
+    store.updateDisplayName('Jefferson A Rojas');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+
+    expect(text).toContain('Jefferson A Rojas');
+    expect(text).not.toContain('Jefferson Rojas ');
+    // Initials are derived from the new name.
+    expect(query<HTMLElement>('.avatar').textContent).toBe('JA');
+  });
+
   it('clears private state and redirects after logout', () => {
     query<HTMLButtonElement>('.topbar__logout').click();
     fixture.detectChanges();

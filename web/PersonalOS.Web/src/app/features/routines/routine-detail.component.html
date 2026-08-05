@@ -1,0 +1,412 @@
+<section class="page" aria-labelledby="routine-title">
+  <div class="page__header">
+    <div class="page__title">
+      <h1 id="routine-title">{{ routine()?.name ?? 'Routine' }}</h1>
+      @if (routine()) {
+        <p>{{ recurrenceLabel() }}</p>
+      }
+    </div>
+
+    <div class="page__actions">
+      <a class="button button--secondary" routerLink="/app/routines">All routines</a>
+    </div>
+  </div>
+
+  @if (loadError()) {
+    <div class="alert alert--error" role="alert">
+      <p>{{ loadError() }}</p>
+      <button class="button button--secondary" type="button" (click)="load()">Try again</button>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <p class="card__hint" role="status" aria-live="polite" aria-busy="true">Loading routine.</p>
+  } @else if (routine()) {
+    <section class="card" aria-labelledby="execution-title">
+      <div class="card__header">
+        <h2 id="execution-title">Today</h2>
+        @if (session()) {
+          <span class="chip" [class.chip--done]="session()?.completedAtUtc !== null">
+            {{ session()?.completedAtUtc !== null ? 'Completed' : 'In progress' }}
+          </span>
+        }
+      </div>
+
+      @if (sessionError()) {
+        <p class="alert alert--error" role="alert">{{ sessionError() }}</p>
+      }
+
+      @if (sessionSuccess()) {
+        <p class="alert alert--success" role="status" aria-live="polite">{{ sessionSuccess() }}</p>
+      }
+
+      @if (!session()) {
+        @if (!appliesToday()) {
+          <p class="card__hint">
+            This routine does not fall on today. You can still start it if you want to do it now.
+          </p>
+        }
+        <div class="form-actions">
+          <button
+            class="button button--primary"
+            type="button"
+            [disabled]="isSessionSaving()"
+            (click)="startSession()"
+          >
+            {{ isSessionSaving() ? 'Starting' : "Start today's session" }}
+          </button>
+        </div>
+      } @else {
+        <form [formGroup]="sessionForm">
+          @if (resultControls.length === 0) {
+            <div class="empty">
+              <p>This routine has no steps yet.</p>
+              <p>Add steps below, then start the session again to record them.</p>
+            </div>
+          } @else {
+            <ul class="execution-list" formArrayName="results">
+              @for (control of resultControls.controls; track control; let index = $index) {
+                <li class="execution" [formGroupName]="index">
+                  <div class="execution__header">
+                    <label class="execution__check">
+                      <input type="checkbox" formControlName="isCompleted" />
+                      <span>{{ stepForResult(index)?.title }}</span>
+                    </label>
+                    @if (targetSummary(stepForResult(index))) {
+                      <span class="chip">{{ targetSummary(stepForResult(index)) }}</span>
+                    }
+                  </div>
+
+                  @if (isExerciseResult(index)) {
+                    <div class="form-grid">
+                      <div class="field">
+                        <label class="field__label" [attr.for]="'sets-' + index">Sets</label>
+                        <input
+                          [id]="'sets-' + index"
+                          class="input"
+                          type="number"
+                          inputmode="numeric"
+                          min="1"
+                          formControlName="actualSets"
+                        />
+                      </div>
+                      <div class="field">
+                        <label class="field__label" [attr.for]="'reps-' + index">Repetitions</label>
+                        <input
+                          [id]="'reps-' + index"
+                          class="input"
+                          type="number"
+                          inputmode="numeric"
+                          min="1"
+                          formControlName="actualRepetitions"
+                        />
+                      </div>
+                      <div class="field">
+                        <label class="field__label" [attr.for]="'weight-' + index">Weight</label>
+                        <input
+                          [id]="'weight-' + index"
+                          class="input"
+                          type="number"
+                          inputmode="decimal"
+                          min="0"
+                          step="0.5"
+                          formControlName="actualWeight"
+                        />
+                      </div>
+                    </div>
+                  }
+
+                  @if (isTimedResult(index)) {
+                    <div class="field">
+                      <label class="field__label" [attr.for]="'duration-' + index">Minutes</label>
+                      <input
+                        [id]="'duration-' + index"
+                        class="input"
+                        type="number"
+                        inputmode="numeric"
+                        min="1"
+                        formControlName="actualDurationMinutes"
+                      />
+                    </div>
+                  }
+
+                  <div class="field">
+                    <label class="field__label" [attr.for]="'result-notes-' + index">Note</label>
+                    <input
+                      [id]="'result-notes-' + index"
+                      class="input"
+                      type="text"
+                      formControlName="notes"
+                    />
+                  </div>
+                </li>
+              }
+            </ul>
+
+            <div class="field">
+              <label class="field__label" for="session-notes">Session note</label>
+              <textarea id="session-notes" class="textarea" formControlName="notes"></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button
+                class="button button--secondary"
+                type="button"
+                [disabled]="isSessionSaving()"
+                (click)="saveSession(false)"
+              >
+                Save progress
+              </button>
+              <button
+                class="button button--primary"
+                type="button"
+                [disabled]="isSessionSaving()"
+                (click)="saveSession(true)"
+              >
+                {{ isSessionSaving() ? 'Saving' : 'Complete routine' }}
+              </button>
+            </div>
+          }
+        </form>
+      }
+    </section>
+
+    <section class="card" aria-labelledby="editor-title">
+      <div class="card__header">
+        <h2 id="editor-title">Routine editor</h2>
+      </div>
+
+      @if (formError()) {
+        <p class="alert alert--error" role="alert">{{ formError() }}</p>
+      }
+
+      @if (saveSuccess()) {
+        <p class="alert alert--success" role="status" aria-live="polite">{{ saveSuccess() }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="form-grid">
+          <div class="field">
+            <label class="field__label" for="edit-name">Name</label>
+            <input
+              id="edit-name"
+              class="input"
+              type="text"
+              formControlName="name"
+              [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
+            />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="edit-category">Category</label>
+            <select id="edit-category" class="select" formControlName="category">
+              @for (option of categories; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="edit-frequency">Repeat</label>
+            <select id="edit-frequency" class="select" formControlName="frequency">
+              @for (option of frequencies; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="edit-interval">Every</label>
+            <input
+              id="edit-interval"
+              class="input"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              formControlName="interval"
+            />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="edit-start">Starts on</label>
+            <input id="edit-start" class="input" type="date" formControlName="startDate" />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="edit-end">Repeats until</label>
+            <input id="edit-end" class="input" type="date" formControlName="endDate" />
+          </div>
+        </div>
+
+        @if (needsWeekdays()) {
+          <fieldset class="weekdays">
+            <legend class="field__label">Weekdays</legend>
+            @for (weekday of weekdays; track weekday) {
+              <label class="weekday">
+                <input
+                  type="checkbox"
+                  [checked]="isWeekdaySelected(weekday)"
+                  (change)="toggleWeekday(weekday)"
+                />
+                <span>{{ weekday }}</span>
+              </label>
+            }
+          </fieldset>
+        }
+
+        <div class="field">
+          <label class="field__label" for="edit-description">Description</label>
+          <textarea id="edit-description" class="textarea" formControlName="description"></textarea>
+        </div>
+
+        <label class="toggle">
+          <input type="checkbox" formControlName="isActive" />
+          <span>Active. An inactive routine keeps its history but leaves Today and the calendar.</span>
+        </label>
+
+        <div class="steps-header">
+          <h3>Steps</h3>
+          <button class="button button--secondary button--small" type="button" (click)="addStep()">
+            Add step
+          </button>
+        </div>
+
+        @if (stepControls.length === 0) {
+          <div class="empty"><p>This routine has no steps yet.</p></div>
+        } @else {
+          <ol class="step-list" formArrayName="steps">
+            @for (control of stepControls.controls; track control; let index = $index) {
+              <li class="step" [formGroupName]="index">
+                <div class="form-grid">
+                  <div class="field">
+                    <label class="field__label" [attr.for]="'step-title-' + index">
+                      Step {{ index + 1 }}
+                    </label>
+                    <input
+                      [id]="'step-title-' + index"
+                      class="input"
+                      type="text"
+                      formControlName="title"
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" [attr.for]="'step-type-' + index">Type</label>
+                    <select [id]="'step-type-' + index" class="select" formControlName="stepType">
+                      @for (option of stepTypes; track option.value) {
+                        <option [value]="option.value">{{ option.label }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+
+                @if (isExerciseStep(index)) {
+                  <div class="form-grid">
+                    <div class="field">
+                      <label class="field__label" [attr.for]="'target-sets-' + index">
+                        Target sets
+                      </label>
+                      <input
+                        [id]="'target-sets-' + index"
+                        class="input"
+                        type="number"
+                        inputmode="numeric"
+                        min="1"
+                        formControlName="targetSets"
+                      />
+                    </div>
+                    <div class="field">
+                      <label class="field__label" [attr.for]="'target-reps-' + index">
+                        Target repetitions
+                      </label>
+                      <input
+                        [id]="'target-reps-' + index"
+                        class="input"
+                        type="number"
+                        inputmode="numeric"
+                        min="1"
+                        formControlName="targetRepetitions"
+                      />
+                    </div>
+                    <div class="field">
+                      <label class="field__label" [attr.for]="'target-weight-' + index">
+                        Target weight
+                      </label>
+                      <input
+                        [id]="'target-weight-' + index"
+                        class="input"
+                        type="number"
+                        inputmode="decimal"
+                        min="0"
+                        step="0.5"
+                        formControlName="targetWeight"
+                      />
+                    </div>
+                  </div>
+                }
+
+                @if (isTimedStep(index)) {
+                  <div class="field">
+                    <label class="field__label" [attr.for]="'target-duration-' + index">
+                      Target minutes
+                    </label>
+                    <input
+                      [id]="'target-duration-' + index"
+                      class="input"
+                      type="number"
+                      inputmode="numeric"
+                      min="1"
+                      formControlName="targetDurationMinutes"
+                    />
+                  </div>
+                }
+
+                <div class="field">
+                  <label class="field__label" [attr.for]="'step-notes-' + index">Note</label>
+                  <input
+                    [id]="'step-notes-' + index"
+                    class="input"
+                    type="text"
+                    formControlName="notes"
+                  />
+                </div>
+
+                <div class="record__actions">
+                  <button
+                    class="button button--secondary button--small"
+                    type="button"
+                    [disabled]="index === 0"
+                    (click)="moveStep(index, -1)"
+                  >
+                    Move up<span class="visually-hidden"> step {{ index + 1 }}</span>
+                  </button>
+                  <button
+                    class="button button--secondary button--small"
+                    type="button"
+                    [disabled]="index === stepControls.length - 1"
+                    (click)="moveStep(index, 1)"
+                  >
+                    Move down<span class="visually-hidden"> step {{ index + 1 }}</span>
+                  </button>
+                  <button
+                    class="button button--danger button--small"
+                    type="button"
+                    (click)="removeStep(index)"
+                  >
+                    Remove<span class="visually-hidden"> step {{ index + 1 }}</span>
+                  </button>
+                </div>
+              </li>
+            }
+          </ol>
+        }
+
+        <div class="form-actions">
+          <button class="button button--primary" type="submit" [disabled]="isSaving()">
+            {{ isSaving() ? 'Saving' : 'Save routine' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+</section>

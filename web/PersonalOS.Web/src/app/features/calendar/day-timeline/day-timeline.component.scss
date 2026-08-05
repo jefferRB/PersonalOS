@@ -1,0 +1,194 @@
+// One row per slot. The count comes from the configured window, so a 60-minute interval draws far
+// fewer, taller rows than a 15-minute one without any other change.
+.timeline {
+  --slot-height: 1rem;
+
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: var(--space-2);
+}
+
+.timeline__hours,
+.timeline__grid {
+  display: grid;
+  grid-template-rows: repeat(var(--timeline-rows, 1), var(--slot-height));
+}
+
+// The gutter stays put while the planner scrolls, so the user never loses track of what hour they
+// are looking at.
+.timeline__hours {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--color-surface);
+}
+
+.timeline__hour {
+  grid-column: 1;
+  font-size: 0.7rem;
+  color: var(--color-muted);
+  transform: translateY(-0.35em);
+}
+
+.timeline__grid {
+  position: relative;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.timeline__slots,
+.timeline__blocks {
+  display: grid;
+  grid-row: 1 / -1;
+  grid-column: 1;
+  grid-template-rows: subgrid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline__slots {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.timeline__blocks {
+  grid-template-columns: repeat(var(--timeline-columns, 1), minmax(0, 1fr));
+  gap: 2px;
+  pointer-events: none;
+}
+
+.timeline__blocks > li {
+  min-width: 0;
+  pointer-events: auto;
+}
+
+.timeline__slot {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-top: 1px dotted var(--color-border);
+  background: none;
+}
+
+.timeline__slot--hour {
+  border-top: 1px solid var(--color-border);
+}
+
+.timeline__slot:hover {
+  background: var(--color-primary-soft);
+}
+
+// The current time is a labelled line rather than a tint, so it survives a monochrome print and a
+// colour-blind reader alike.
+.timeline__now {
+  grid-column: 1;
+  align-self: start;
+  width: 100%;
+  height: 2px;
+  background: var(--color-danger);
+  pointer-events: none;
+}
+
+.timeline__block {
+  --block-accent: var(--color-primary);
+
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  padding: 2px var(--space-2);
+  border: 1px solid var(--block-accent);
+  border-left: 4px solid var(--block-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: inherit;
+  text-align: left;
+}
+
+.timeline__block[data-kind='task'] {
+  --block-accent: var(--kind-task);
+}
+
+.timeline__block[data-kind='routine'] {
+  --block-accent: var(--kind-routine);
+}
+
+.timeline__block[data-kind='event'] {
+  --block-accent: var(--kind-event);
+}
+
+.timeline__block[data-kind='appointment'] {
+  --block-accent: var(--kind-appointment);
+}
+
+.timeline__block-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.7rem;
+  color: var(--color-muted);
+}
+
+.timeline__block-head svg {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  fill: none;
+  stroke: var(--block-accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+// Importance and repetition are glyphs, not hues, so neither depends on colour to be noticed.
+.timeline__flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 13px;
+  height: 13px;
+  padding: 0 3px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.timeline__flag--important {
+  border-color: var(--color-warning);
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.timeline__block-title {
+  overflow: hidden;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline__block-kind {
+  font-size: 0.7rem;
+  color: var(--color-muted);
+}
+
+// A finished or abandoned activity stays legible: it is still part of the record, just no longer
+// competing for attention.
+.timeline__block--completed {
+  background: var(--color-success-soft);
+}
+
+.timeline__block--completed .timeline__block-title,
+.timeline__block--cancelled .timeline__block-title {
+  text-decoration: line-through;
+}
+
+.timeline__block--cancelled {
+  background: var(--color-surface-alt);
+  color: var(--color-muted);
+  opacity: 0.85;
+}

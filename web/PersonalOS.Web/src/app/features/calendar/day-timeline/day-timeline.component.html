@@ -1,0 +1,75 @@
+<div class="timeline" [style.--timeline-rows]="slots().length">
+  <div class="timeline__hours" aria-hidden="true">
+    @for (slot of slots(); track slot.index) {
+      @if (slot.isHourStart) {
+        <span class="timeline__hour" [style.grid-row]="slot.index + 1">{{ slot.time }}</span>
+      }
+    }
+  </div>
+
+  <div class="timeline__grid">
+    <ul class="timeline__slots">
+      @for (slot of slots(); track slot.index) {
+        <li [style.grid-row]="slot.index + 1">
+          <button
+            type="button"
+            class="timeline__slot"
+            [class.timeline__slot--hour]="slot.isHourStart"
+            [attr.data-time]="slot.time"
+            [attr.aria-label]="slotLabel(slot.time)"
+            (click)="slotSelected.emit(slot.time)"
+          ></button>
+        </li>
+      }
+    </ul>
+
+    @if (nowRow() !== null) {
+      <div class="timeline__now" [style.grid-row]="nowRow()">
+        <span class="visually-hidden">Current time</span>
+      </div>
+    }
+
+    <ul
+      class="timeline__blocks"
+      [style.--timeline-columns]="layout().columnCount"
+      aria-label="Scheduled activities"
+    >
+      @for (block of layout().blocks; track block.occurrence.planningItemId) {
+        <li
+          [style.grid-row]="block.rowStart + ' / span ' + block.rowSpan"
+          [style.grid-column]="block.column"
+        >
+          <button
+            type="button"
+            class="timeline__block"
+            [attr.data-kind]="kindToken(block.occurrence)"
+            [class.timeline__block--completed]="block.occurrence.status === 'completed'"
+            [class.timeline__block--cancelled]="block.occurrence.status === 'cancelled'"
+            [attr.aria-label]="'Edit ' + accessibleName(block.occurrence)"
+            (click)="occurrenceSelected.emit(block.occurrence)"
+          >
+            <span class="timeline__block-head">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path [attr.d]="iconPath(block.occurrence)" />
+              </svg>
+              <span class="timeline__block-time">{{ timeLabel(block.occurrence) }}</span>
+              @if (block.occurrence.priority === 'high') {
+                <span class="timeline__flag timeline__flag--important" title="Important">!</span>
+              }
+              @if (block.occurrence.isRecurring) {
+                <span class="timeline__flag" title="Repeats">&#8635;</span>
+              }
+            </span>
+            <span class="timeline__block-title">{{ block.occurrence.title }}</span>
+            <span class="timeline__block-kind">
+              {{ kindLabel(block.occurrence) }}
+              @if (block.occurrence.status !== 'planned') {
+                &middot; {{ status(block.occurrence) }}
+              }
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+</div>

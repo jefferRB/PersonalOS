@@ -1,0 +1,280 @@
+.month {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+// Two compact rows: what to look at, then which month. Both belong to this card rather than
+// floating above the page, because neither acts on anything else.
+.month__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.month__bar--views {
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.month__bar--navigation {
+  gap: var(--space-2);
+}
+
+.month__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.month__group--settings {
+  margin-left: auto;
+}
+
+.month__field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.month__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+// Compact, but never below the 2.25rem that keeps a control comfortably tappable.
+.input--time,
+.select--compact {
+  width: auto;
+  min-height: 2.25rem;
+  padding-block: var(--space-1);
+  font-size: 0.85rem;
+}
+
+.input--time {
+  min-width: 6.75rem;
+}
+
+.select--compact {
+  min-width: 5.5rem;
+}
+
+.month__alert {
+  margin: 0;
+}
+
+.month__title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.month__pickers {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.month__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-muted);
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+.month__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  // Roughly square without pinning a height, so the grid keeps its proportions as the card widens.
+  aspect-ratio: 1 / 0.92;
+  min-height: 3.5rem;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: inherit;
+  text-align: left;
+}
+
+.day:hover {
+  border-color: var(--color-primary-soft);
+  background: var(--color-surface-alt);
+}
+
+// A blank is not a date: no border, no background, nothing to aim at.
+.day--placeholder {
+  border-color: transparent;
+  background: none;
+  pointer-events: none;
+}
+
+// The selected day carries a ring as well as a fill, and today an underlined number, so neither
+// state depends on the fill colour being distinguishable.
+.day--selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+
+.day--today .day__number {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  font-weight: 700;
+  color: var(--color-primary-strong);
+}
+
+.day__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+}
+
+.day__number {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.day__flags {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+// Failed and important keep their own corner and their own glyphs. Neither is a tint, and neither
+// looks like the other.
+.day__failed,
+.day__important {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.day__failed {
+  background: var(--color-danger);
+}
+
+.day__failed svg {
+  width: 11px;
+  height: 11px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.day__important {
+  background: var(--color-warning);
+}
+
+.day__marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.day__kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 3px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.day__kind svg {
+  width: 9px;
+  height: 9px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.day__kind[data-kind='task'] {
+  background: var(--kind-task);
+}
+
+.day__kind[data-kind='routine'] {
+  background: var(--kind-routine);
+}
+
+.day__kind[data-kind='event'] {
+  background: var(--kind-event);
+}
+
+.day__kind[data-kind='appointment'] {
+  background: var(--kind-appointment);
+}
+
+.day__count {
+  margin-top: auto;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-align: right;
+}
+
+.month .icon-button svg {
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 60rem) {
+  .month__group--settings {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 40rem) {
+  .day {
+    aspect-ratio: auto;
+    min-height: 3rem;
+    padding: var(--space-1);
+  }
+
+  // A phone-width cell has no room for a badge and its number, so the counts drop away and the
+  // dots carry the kind alone. The accessible name still states every count.
+  .day__kind-count {
+    display: none;
+  }
+
+  .month__title {
+    order: -1;
+    flex-basis: 100%;
+  }
+}

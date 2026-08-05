@@ -1,0 +1,155 @@
+<dialog
+  #dialog
+  class="planner"
+  aria-labelledby="planner-title"
+  (close)="onDialogClose()"
+  (mousedown)="onDialogPointerDown($event)"
+>
+  <div class="planner__shell">
+    <header class="planner__header">
+      <div class="planner__nav">
+        <button
+          class="icon-button"
+          type="button"
+          aria-label="Previous day"
+          (click)="dayOffset.emit(-1)"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+        </button>
+        <button
+          class="icon-button"
+          type="button"
+          aria-label="Next day"
+          (click)="dayOffset.emit(1)"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+        </button>
+        <button
+          class="button button--secondary button--small"
+          type="button"
+          [disabled]="todayDate() === null || isToday()"
+          (click)="goToToday.emit()"
+        >
+          Today
+        </button>
+      </div>
+
+      <h2 id="planner-title" class="planner__title">{{ dayLabel() }}</h2>
+
+      <div class="planner__header-actions">
+        <button
+          class="button button--primary button--small"
+          type="button"
+          (click)="openCreate(null)"
+        >
+          New activity
+        </button>
+        <button
+          class="icon-button"
+          type="button"
+          aria-label="Close the day planner"
+          (click)="requestClose()"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="planner__body" [class.planner__body--editing]="isEditorOpen()">
+      <div #scroll class="planner__scroll">
+        @if (isLoading()) {
+          <p class="card__hint" role="status" aria-live="polite">Loading this day.</p>
+        }
+
+        <section class="planner__anytime" aria-labelledby="planner-anytime-title">
+          <h3 id="planner-anytime-title">Anytime</h3>
+          @if (anytime().length === 0) {
+            <p class="card__hint">Nothing without a time on this day.</p>
+          } @else {
+            <ul class="planner__list">
+              @for (occurrence of anytime(); track occurrence.planningItemId) {
+                <li>
+                  <app-activity-card
+                    [occurrence]="occurrence"
+                    [todayDate]="todayDate()"
+                    [isBusy]="store.busyItemId() === occurrence.planningItemId"
+                    (open)="openOccurrence($event)"
+                    (statusChange)="statusChange.emit($event)"
+                  />
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        @if (outsideWindow().length > 0) {
+          <section class="planner__outside" aria-labelledby="planner-outside-title">
+            <h3 id="planner-outside-title">Outside visible hours</h3>
+            <p class="card__hint">
+              These fall outside the hours the timeline is set to show. Change Start and End above
+              the month grid to bring them into view.
+            </p>
+            <ul class="planner__list">
+              @for (occurrence of outsideWindow(); track occurrence.planningItemId) {
+                <li>
+                  <app-activity-card
+                    [occurrence]="occurrence"
+                    [todayDate]="todayDate()"
+                    [isBusy]="store.busyItemId() === occurrence.planningItemId"
+                    (open)="openOccurrence($event)"
+                    (statusChange)="statusChange.emit($event)"
+                  />
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        <section class="planner__timeline" aria-labelledby="planner-timeline-title">
+          <h3 id="planner-timeline-title">Timeline</h3>
+          <p class="card__hint">
+            Select any slot to add something at that time, or an activity to edit it.
+          </p>
+
+          <app-day-timeline
+            [occurrences]="occurrences()"
+            [window]="store.timelineWindow()"
+            [localTimeOfDay]="localTimeOfDay()"
+            (slotSelected)="openCreate($event)"
+            (occurrenceSelected)="openOccurrence($event)"
+          />
+        </section>
+      </div>
+
+      @if (isEditorOpen()) {
+        <!-- A dimmed sheet over the timeline, so it is obvious that clicking there dismisses the
+             drawer rather than acting on the day behind it. -->
+        <button
+          type="button"
+          class="planner__overlay"
+          aria-label="Close the activity editor"
+          (click)="onOverlayClick()"
+        ></button>
+
+        <aside class="planner__editor" aria-label="Activity editor">
+          @if (editor().isLoading) {
+            <p class="card__hint" role="status" aria-live="polite">Loading this activity.</p>
+          } @else {
+            <app-activity-editor
+              [item]="editor().item"
+              [defaultDate]="date()"
+              [defaultTime]="editor().defaultTime"
+              [isSaving]="isSaving()"
+              [isDeleting]="isDeleting()"
+              [serverErrors]="editor().fieldErrors"
+              [formError]="editor().error"
+              (save)="onSave($event)"
+              (remove)="onDelete($event)"
+              (cancel)="tryCloseEditor()"
+            />
+          }
+        </aside>
+      }
+    </div>
+  </div>
+</dialog>

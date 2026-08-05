@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { anonymousOnlyGuard, authenticatedGuard } from './core/auth/auth.guards';
+import { unsavedChangesGuard } from './core/navigation/unsaved-changes.guard';
 
 export const routes: Routes = [
   {
@@ -46,8 +47,58 @@ export const routes: Routes = [
           import('./features/today/today.component').then((module) => module.TodayComponent),
       },
       {
+        path: 'calendar',
+        title: 'Calendar - PersonalOS',
+        loadComponent: () =>
+          import('./features/calendar/calendar.component').then(
+            (module) => module.CalendarComponent,
+          ),
+      },
+      {
+        path: 'routines',
+        title: 'Routines - PersonalOS',
+        loadComponent: () =>
+          import('./features/routines/routines.component').then(
+            (module) => module.RoutinesComponent,
+          ),
+      },
+      {
+        // The identifier is bound to the component's `id` input by the router's component input
+        // binding, so the component never has to read the snapshot itself.
+        path: 'routines/:id',
+        title: 'Routine - PersonalOS',
+        loadComponent: () =>
+          import('./features/routines/routine-detail.component').then(
+            (module) => module.RoutineDetailComponent,
+          ),
+      },
+      {
+        path: 'nutrition',
+        title: 'Nutrition - PersonalOS',
+        loadComponent: () =>
+          import('./features/nutrition/nutrition.component').then(
+            (module) => module.NutritionComponent,
+          ),
+      },
+      {
+        path: 'study',
+        title: 'Study - PersonalOS',
+        loadComponent: () =>
+          import('./features/study/study.component').then((module) => module.StudyComponent),
+      },
+      {
+        path: 'journal',
+        title: 'Journal - PersonalOS',
+        // A reflection cannot be reconstructed from anywhere else, so leaving with unsaved edits
+        // asks for confirmation.
+        canDeactivate: [unsavedChangesGuard],
+        loadComponent: () =>
+          import('./features/journal/journal.component').then((module) => module.JournalComponent),
+      },
+      {
         path: 'settings',
         title: 'Settings - PersonalOS',
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./features/settings/settings.component').then((module) => module.SettingsComponent),
       },

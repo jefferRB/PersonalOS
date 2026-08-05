@@ -79,6 +79,27 @@ export function isUnauthorizedError(error: unknown): boolean {
   return isApiError(error) && error.category === 'unauthorized';
 }
 
+/**
+ * Coerces any thrown value into an {@link ApiError}.
+ *
+ * The HTTP interceptor already normalizes failed responses, but a subscriber can still receive
+ * something else, for example an error thrown inside an operator. Every feature needs the same
+ * fallback, so it lives here rather than being repeated per component.
+ */
+export function toApiError(error: unknown): ApiError {
+  return isApiError(error)
+    ? error
+    : {
+        status: 0,
+        category: 'unknown',
+        title: 'Request failed.',
+        detail: 'The request could not be completed.',
+        validationErrors: {},
+        retryAfter: null,
+        traceId: null,
+      };
+}
+
 export function formLevelMessage(error: ApiError): string {
   switch (error.category) {
     case 'validation':
@@ -104,13 +125,31 @@ export function formLevelMessage(error: ApiError): string {
   }
 }
 
+/**
+ * Finds the first usable server validation message for a field.
+ *
+ * ASP.NET Core does not always spell a validation key exactly as the TypeScript contract does:
+ * model-binding failures use the declared property name while hand-written problem details use
+ * the camel-case contract name. The lookup therefore falls back to a case-insensitive match so a
+ * server message is never silently dropped and shown only as a generic form error.
+ */
 export function firstValidationError(
   errors: Record<string, string[]>,
   fieldName: string,
 ): string | null {
-  const messages = errors[fieldName];
+  const messages = errors[fieldName] ?? findByCaseInsensitiveKey(errors, fieldName);
 
   return messages?.find((message) => message.trim().length > 0) ?? null;
+}
+
+function findByCaseInsensitiveKey(
+  errors: Record<string, string[]>,
+  fieldName: string,
+): string[] | undefined {
+  const target = fieldName.toLowerCase();
+  const match = Object.keys(errors).find((key) => key.toLowerCase() === target);
+
+  return match === undefined ? undefined : errors[match];
 }
 
 function createApiError(options: {

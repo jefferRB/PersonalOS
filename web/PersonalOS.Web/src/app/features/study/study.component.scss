@@ -1,0 +1,152 @@
+:host {
+  display: block;
+}
+
+.alert p {
+  margin: 0;
+}
+
+.alert .button {
+  margin-top: var(--space-3);
+}
+
+form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.steps-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.steps-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.resource-list {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.resource {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  padding: var(--space-4);
+}
+
+.week__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.week-day {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-3);
+}
+
+.week-day--today {
+  border-color: var(--color-primary);
+  border-width: 2px;
+  background: var(--color-primary-soft);
+}
+
+.week-day h3 {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.week-day__date {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.week-day__total {
+  margin: 0;
+  color: var(--color-primary);
+  font-weight: 800;
+}
+
+.week-day__empty {
+  margin: 0;
+  color: var(--color-subtle);
+  font-size: 0.8rem;
+}
+
+.week-day__sessions {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.week-day__sessions p {
+  margin: 0;
+}
+
+.resource-links {
+  display: grid;
+  gap: var(--space-2);
+  padding: 0;
+  margin: var(--space-2) 0 0;
+  list-style: none;
+}
+
+.resource-links li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.resource-links__note {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+/* Only raw enum values need their first letter raised. Applying this to every chip turned the
+   already-worded duration labels into "45 Min". */
+.chip--enum {
+  text-transform: capitalize;
+}
+
+@media (max-width: 1080px) {
+  .week-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .week-grid {
+    grid-template-columns: 1fr;
+  }
+}

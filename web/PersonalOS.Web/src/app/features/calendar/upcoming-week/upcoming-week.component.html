@@ -1,0 +1,84 @@
+<section class="card" aria-labelledby="upcoming-title">
+  <div class="card__header">
+    <h2 id="upcoming-title">Next 7 days</h2>
+  </div>
+
+  <app-occurrence-filters
+    idPrefix="upcoming-filter"
+    label="Next 7 days filters"
+    [filter]="filter()"
+    [viewOptions]="viewOptions"
+    [showImportantOnly]="true"
+    [isDefault]="isFilterDefault()"
+    (filterChange)="filterChange.emit($event)"
+    (cleared)="filterCleared.emit()"
+  />
+
+  @if (isLoading()) {
+    <p class="card__hint" role="status" aria-live="polite">Loading the next seven days.</p>
+  }
+
+  @if (error()) {
+    <div class="alert alert--error" role="alert">
+      <p>{{ error() }}</p>
+      <button class="button button--secondary button--small" type="button" (click)="retry.emit()">
+        Try again
+      </button>
+    </div>
+  }
+
+  @if (isEmpty()) {
+    <div class="empty">
+      <p>Nothing in the next seven days matches these filters.</p>
+      @if (filter().importantOnly) {
+        <p>Turn off <strong>Important only</strong> to see the rest of the week.</p>
+      }
+    </div>
+  }
+
+  <div class="upcoming__days">
+    @for (group of groups(); track group.date) {
+      <section class="upcoming__day" [attr.aria-label]="label(group.date)">
+        <h3 class="upcoming__date">
+          <button type="button" class="link-button" (click)="daySelected.emit(group.date)">
+            {{ label(group.date) }}
+          </button>
+        </h3>
+
+        @if (group.anytime.length > 0) {
+          <p class="upcoming__group">Anytime</p>
+          <ul class="upcoming__list">
+            @for (occurrence of group.anytime; track occurrence.planningItemId) {
+              <li>
+                <app-activity-card
+                  [occurrence]="occurrence"
+                  [todayDate]="todayDate()"
+                  [showActions]="false"
+                  (open)="open.emit($event)"
+                />
+              </li>
+            }
+          </ul>
+        }
+
+        @if (group.scheduled.length > 0) {
+          @if (group.anytime.length > 0) {
+            <p class="upcoming__group">Scheduled</p>
+          }
+          <ul class="upcoming__list">
+            @for (occurrence of group.scheduled; track occurrence.planningItemId) {
+              <li>
+                <app-activity-card
+                  [occurrence]="occurrence"
+                  [todayDate]="todayDate()"
+                  [showActions]="false"
+                  (open)="open.emit($event)"
+                />
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+  </div>
+</section>

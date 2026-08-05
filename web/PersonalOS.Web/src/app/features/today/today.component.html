@@ -1,58 +1,491 @@
-<section class="today" aria-labelledby="today-title">
-  <div class="today__header">
-    <p class="today__date">{{ localDate }}</p>
-    <h1 id="today-title">Good day, {{ currentUser()?.displayName }}.</h1>
-    <p>
-      Milestone 1 gives PersonalOS a protected home, secure session awareness, and the
-      first honest empty state for the future daily workflow.
-    </p>
+<section class="page" aria-labelledby="today-title">
+  <div class="page__header">
+    <div class="page__title">
+      @if (isLoading()) {
+        <p class="today__date today__date--pending" role="status" aria-live="polite" aria-busy="true">
+          Loading your day.
+        </p>
+      } @else if (localDateLabel()) {
+        <p class="today__date">{{ localDateLabel() }}</p>
+      }
+
+      <h1 id="today-title">Good day, {{ currentUser()?.displayName }}.</h1>
+
+      @if (progress(); as summaryProgress) {
+        <p>
+          {{ summaryProgress.completedItemCount }} of {{ summaryProgress.plannedItemCount }} planned
+          items done, {{ summaryProgress.completedRoutineCount }} of
+          {{ summaryProgress.routineCount }} routines finished.
+        </p>
+      }
+    </div>
+
+    <div class="page__actions">
+      <button
+        class="button button--primary"
+        type="button"
+        [attr.aria-expanded]="quickAddMode() === 'task'"
+        (click)="openQuickAdd('task')"
+      >
+        Add task
+      </button>
+      <button
+        class="button button--secondary"
+        type="button"
+        [attr.aria-expanded]="quickAddMode() === 'meal'"
+        (click)="openQuickAdd('meal')"
+      >
+        Add meal
+      </button>
+      <button
+        class="button button--secondary"
+        type="button"
+        [attr.aria-expanded]="quickAddMode() === 'study'"
+        (click)="openQuickAdd('study')"
+      >
+        Add study
+      </button>
+      <a class="button button--secondary" routerLink="/app/journal">Write journal</a>
+    </div>
   </div>
 
-  <section class="empty-state" aria-labelledby="empty-state-title">
-    <div class="empty-state__icon" aria-hidden="true">
-      <svg viewBox="0 0 48 48">
-        <path d="M10 12h28v24H10z" />
-        <path d="M16 20h16M16 27h10M18 8v8M30 8v8" />
-      </svg>
+  @if (loadError()) {
+    <div class="alert alert--error" role="alert">
+      <p>{{ loadError() }}</p>
+      <button class="button button--secondary" type="button" (click)="load()">Try again</button>
     </div>
-    <div>
-      <h2 id="empty-state-title">Today is ready for real data.</h2>
-      <p>
-        Tasks, habits, nutrition, journal entries, reminders, and analytics are intentionally
-        not implemented yet. This page stays useful without inventing records.
-      </p>
-    </div>
-  </section>
+  }
 
-  <section class="workflow" aria-labelledby="workflow-title">
-    <div class="workflow__heading">
-      <h2 id="workflow-title">Capture -> Plan -> Execute -> Record -> Review -> Adjust</h2>
-      <p>
-        The first screen frames the product loop while the backend remains focused on
-        account, session, antiforgery, and health behavior.
-      </p>
-    </div>
+  @if (quickAddSuccess()) {
+    <p class="alert alert--success" role="status" aria-live="polite">{{ quickAddSuccess() }}</p>
+  }
 
-    <ol class="workflow__list">
-      @for (stage of workflow; track stage.name) {
-        <li>
-          <span>{{ stage.name }}</span>
-          <p>{{ stage.description }}</p>
-        </li>
+  @if (quickAddMode() !== 'none') {
+    <section class="card quick-add" aria-labelledby="quick-add-title">
+      <div class="card__header">
+        <h2 id="quick-add-title">Quick add</h2>
+        <button class="button button--ghost button--small" type="button" (click)="closeQuickAdd()">
+          Close
+        </button>
+      </div>
+
+      @if (quickAddError()) {
+        <p class="alert alert--error" role="alert">{{ quickAddError() }}</p>
       }
-    </ol>
+
+      @if (quickAddMode() === 'task') {
+        <form class="form-grid" [formGroup]="taskForm" (ngSubmit)="addTask()">
+          <div class="field">
+            <label class="field__label" for="quick-task-title">Task</label>
+            <input
+              id="quick-task-title"
+              class="input"
+              type="text"
+              formControlName="title"
+              autocomplete="off"
+              [attr.aria-invalid]="taskForm.controls.title.touched && taskForm.controls.title.invalid"
+            />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="quick-task-time">Start time</label>
+            <input id="quick-task-time" class="input" type="time" formControlName="startTime" />
+            <p class="field__hint">Leave empty for an item with no fixed time.</p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="quick-task-category">Category</label>
+            <select id="quick-task-category" class="select" formControlName="category">
+              @for (option of categories; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field form-actions">
+            <button class="button button--primary" type="submit" [disabled]="isSaving()">
+              {{ isSaving() ? 'Saving' : 'Add task' }}
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (quickAddMode() === 'meal') {
+        <form class="form-grid" [formGroup]="mealForm" (ngSubmit)="addMeal()">
+          <div class="field">
+            <label class="field__label" for="quick-meal-name">Food</label>
+            <input
+              id="quick-meal-name"
+              class="input"
+              type="text"
+              formControlName="name"
+              autocomplete="off"
+              [attr.aria-invalid]="mealForm.controls.name.touched && mealForm.controls.name.invalid"
+            />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="quick-meal-calories">Calories</label>
+            <input
+              id="quick-meal-calories"
+              class="input"
+              type="number"
+              inputmode="numeric"
+              min="0"
+              formControlName="calories"
+              [attr.aria-invalid]="
+                mealForm.controls.calories.touched && mealForm.controls.calories.invalid
+              "
+            />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="quick-meal-type">Meal</label>
+            <select id="quick-meal-type" class="select" formControlName="mealType">
+              @for (option of mealTypes; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field form-actions">
+            <button class="button button--primary" type="submit" [disabled]="isSaving()">
+              {{ isSaving() ? 'Saving' : 'Add meal' }}
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (quickAddMode() === 'study') {
+        @if (studyProjects().length === 0) {
+          <div class="empty">
+            <p>You have no study projects yet.</p>
+            <p><a routerLink="/app/study">Create one on the Study page</a> to record sessions.</p>
+          </div>
+        } @else {
+          <form class="form-grid" [formGroup]="studyForm" (ngSubmit)="addStudySession()">
+            <div class="field">
+              <label class="field__label" for="quick-study-project">Project</label>
+              <select id="quick-study-project" class="select" formControlName="studyProjectId">
+                @for (project of studyProjects(); track project.id) {
+                  <option [value]="project.id">{{ project.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="quick-study-minutes">Minutes</label>
+              <input
+                id="quick-study-minutes"
+                class="input"
+                type="number"
+                inputmode="numeric"
+                min="1"
+                formControlName="durationMinutes"
+                [attr.aria-invalid]="
+                  studyForm.controls.durationMinutes.touched
+                  && studyForm.controls.durationMinutes.invalid
+                "
+              />
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="quick-study-summary">What you studied</label>
+              <input
+                id="quick-study-summary"
+                class="input"
+                type="text"
+                formControlName="summary"
+                autocomplete="off"
+              />
+            </div>
+
+            <div class="field form-actions">
+              <button class="button button--primary" type="submit" [disabled]="isSaving()">
+                {{ isSaving() ? 'Saving' : 'Add session' }}
+              </button>
+            </div>
+          </form>
+        }
+      }
+    </section>
+  }
+
+  @if (progress(); as summaryProgress) {
+    <section aria-labelledby="summary-title">
+      <h2 id="summary-title" class="visually-hidden">Daily summary</h2>
+      <ul class="stat-grid">
+        <li class="stat">
+          <span class="stat__value"
+            >{{ summaryProgress.completedItemCount }}/{{ summaryProgress.plannedItemCount }}</span
+          >
+          <span class="stat__label">Planned items done</span>
+        </li>
+        <li class="stat">
+          <span class="stat__value"
+            >{{ summaryProgress.completedRoutineCount }}/{{ summaryProgress.routineCount }}</span
+          >
+          <span class="stat__label">Routines finished</span>
+        </li>
+        <li class="stat">
+          <span class="stat__value">
+            {{ summaryProgress.consumedCalories }}@if (summaryProgress.dailyCalorieTarget !== null) {
+              <span class="stat__of">/{{ summaryProgress.dailyCalorieTarget }}</span>
+            }
+          </span>
+          <span class="stat__label">
+            @if (summaryProgress.dailyCalorieTarget === null) {
+              Calories recorded. No target set.
+            } @else {
+              Calories against your target
+            }
+          </span>
+        </li>
+        <li class="stat">
+          <span class="stat__value">{{ minutesLabel(summaryProgress.studyMinutes) }}</span>
+          <span class="stat__label">Studied</span>
+        </li>
+        <li class="stat">
+          <span class="stat__value">{{ summaryProgress.journalCompleted ? 'Written' : 'Empty' }}</span>
+          <span class="stat__label">Journal</span>
+        </li>
+      </ul>
+    </section>
+  }
+
+  <section class="card" aria-labelledby="timeline-title">
+    <div class="card__header">
+      <h2 id="timeline-title">Daily timeline</h2>
+      <a class="button button--secondary button--small" routerLink="/app/calendar">Open calendar</a>
+    </div>
+
+    @if (isLoading()) {
+      <p class="card__hint" role="status" aria-live="polite" aria-busy="true">Loading your day.</p>
+    } @else if (!hasAnyPlannedItem()) {
+      <div class="empty">
+        <p>Nothing is planned for this day yet.</p>
+        <p>Use <strong>Add task</strong> above to place the first item on the timeline.</p>
+      </div>
+    } @else {
+      @if (timedItems().length > 0) {
+        <ol class="timeline">
+          @for (item of timedItems(); track item.planningItemId; let index = $index) {
+            @if (nowMarkerIndex() === index) {
+              <li class="timeline__now" aria-hidden="true"><span>Now</span></li>
+            }
+            <li class="timeline__item" [class.timeline__item--done]="item.status === 'completed'">
+              <span class="timeline__time">{{ timeLabel(item.startTime) }}</span>
+              <div class="timeline__body">
+                <p class="record__title">{{ item.title }}</p>
+                <p class="record__meta">
+                  <span class="chip" [class.chip--done]="item.status === 'completed'">
+                    {{ statusLabel(item) }}
+                  </span>
+                  <span>{{ item.kind }}</span>
+                  <span>{{ item.category }}</span>
+                  @if (item.priority === 'high') {
+                    <span class="chip">Important</span>
+                  }
+                  @if (item.endTime) {
+                    <span>until {{ timeLabel(item.endTime) }}</span>
+                  }
+                </p>
+              </div>
+              <span class="timeline__actions">
+                @if (isPlanned(item) || item.status === 'completed') {
+                  <button
+                    class="button button--secondary button--small"
+                    type="button"
+                    [disabled]="pendingItemId() !== null"
+                    (click)="toggleCompletion(item)"
+                  >
+                    {{ item.status === 'completed' ? 'Reopen' : 'Complete' }}
+                    <span class="visually-hidden">{{ item.title }}</span>
+                  </button>
+                }
+                @if (isPlanned(item)) {
+                  <button
+                    class="button button--ghost button--small"
+                    type="button"
+                    [disabled]="pendingItemId() !== null"
+                    (click)="markFailed(item)"
+                  >
+                    Mark failed<span class="visually-hidden"> {{ item.title }}</span>
+                  </button>
+                }
+                @if (canReopen(item)) {
+                  <button
+                    class="button button--secondary button--small"
+                    type="button"
+                    [disabled]="pendingItemId() !== null"
+                    (click)="reopen(item)"
+                  >
+                    Reopen<span class="visually-hidden"> {{ item.title }}</span>
+                  </button>
+                }
+              </span>
+            </li>
+          }
+          @if (nowMarkerIndex() === timedItems().length) {
+            <li class="timeline__now" aria-hidden="true"><span>Now</span></li>
+          }
+        </ol>
+      }
+
+      @if (untimedItems().length > 0) {
+        <div class="untimed">
+          <h3>No fixed time</h3>
+          <ul class="record-list">
+            @for (item of untimedItems(); track item.planningItemId) {
+              <li class="record">
+                <div class="record__main">
+                  <p class="record__title">{{ item.title }}</p>
+                  <p class="record__meta">
+                    <span class="chip" [class.chip--done]="item.status === 'completed'">
+                      {{ statusLabel(item) }}
+                    </span>
+                    <span>{{ item.kind }}</span>
+                    <span>{{ item.category }}</span>
+                    @if (item.priority === 'high') {
+                      <span class="chip">Important</span>
+                    }
+                  </p>
+                </div>
+                <div class="record__actions">
+                  @if (isPlanned(item) || item.status === 'completed') {
+                    <button
+                      class="button button--secondary button--small"
+                      type="button"
+                      [disabled]="pendingItemId() !== null"
+                      (click)="toggleCompletion(item)"
+                    >
+                      {{ item.status === 'completed' ? 'Reopen' : 'Complete' }}
+                      <span class="visually-hidden">{{ item.title }}</span>
+                    </button>
+                  }
+                  @if (isPlanned(item)) {
+                    <button
+                      class="button button--ghost button--small"
+                      type="button"
+                      [disabled]="pendingItemId() !== null"
+                      (click)="markFailed(item)"
+                    >
+                      Mark failed<span class="visually-hidden"> {{ item.title }}</span>
+                    </button>
+                  }
+                  @if (canReopen(item)) {
+                    <button
+                      class="button button--secondary button--small"
+                      type="button"
+                      [disabled]="pendingItemId() !== null"
+                      (click)="reopen(item)"
+                    >
+                      Reopen<span class="visually-hidden"> {{ item.title }}</span>
+                    </button>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    }
   </section>
 
-  <section class="next-step" aria-labelledby="settings-link-title">
-    <div>
-      <h2 id="settings-link-title">Account context</h2>
-      <p>Settings shows only the account details returned by the current-user endpoint.</p>
+  <section class="card" aria-labelledby="routines-today-title">
+    <div class="card__header">
+      <h2 id="routines-today-title">Routines today</h2>
+      <a class="button button--secondary button--small" routerLink="/app/routines">All routines</a>
     </div>
-    <a class="button button--secondary" routerLink="/app/settings">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M9 18l6-6-6-6" />
-      </svg>
-      <span>Open settings</span>
-    </a>
+
+    @if (routines().length === 0) {
+      <div class="empty">
+        <p>No routine applies to this day.</p>
+        <p>Create a routine to repeat a workout, a study block, or a morning sequence.</p>
+      </div>
+    } @else {
+      <ul class="record-list">
+        @for (routine of routines(); track routine.routineTemplateId) {
+          <li class="record">
+            <div class="record__main">
+              <p class="record__title">{{ routine.name }}</p>
+              <p class="record__meta">
+                <span class="chip" [class.chip--done]="routine.isCompleted">
+                  {{ routine.isCompleted ? 'Completed' : 'Not finished' }}
+                </span>
+                <span>{{ routine.completedStepCount }} of {{ routine.stepCount }} steps</span>
+                <span>{{ routine.category }}</span>
+              </p>
+            </div>
+            <div class="record__actions">
+              <a
+                class="button button--secondary button--small"
+                [routerLink]="['/app/routines', routine.routineTemplateId]"
+              >
+                {{ routine.sessionId === null ? 'Start' : 'Continue' }}
+                <span class="visually-hidden">{{ routine.name }}</span>
+              </a>
+            </div>
+          </li>
+        }
+      </ul>
+    }
   </section>
+
+  <div class="two-column">
+    <section class="card" aria-labelledby="meals-today-title">
+      <div class="card__header">
+        <h2 id="meals-today-title">Meals</h2>
+        <a class="button button--secondary button--small" routerLink="/app/nutrition">Nutrition</a>
+      </div>
+
+      @if (meals().length === 0) {
+        <div class="empty"><p>No meals recorded for this day.</p></div>
+      } @else {
+        <ul class="record-list">
+          @for (meal of meals(); track meal.id) {
+            <li class="record">
+              <div class="record__main">
+                <p class="record__title">{{ meal.name }}</p>
+                <p class="record__meta">
+                  <span class="chip">{{ meal.mealType }}</span>
+                  <span>{{ meal.calories }} kcal</span>
+                  @if (meal.occurredAtLocalTime) {
+                    <span>{{ timeLabel(meal.occurredAtLocalTime) }}</span>
+                  }
+                </p>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="card" aria-labelledby="study-today-title">
+      <div class="card__header">
+        <h2 id="study-today-title">Study</h2>
+        <a class="button button--secondary button--small" routerLink="/app/study">Study</a>
+      </div>
+
+      @if (studySessions().length === 0) {
+        <div class="empty"><p>No study recorded for this day.</p></div>
+      } @else {
+        <ul class="record-list">
+          @for (session of studySessions(); track session.id) {
+            <li class="record">
+              <div class="record__main">
+                <p class="record__title">{{ session.projectName }}</p>
+                <p class="record__meta">
+                  <span class="chip">{{ minutesLabel(session.durationMinutes) }}</span>
+                  @if (session.summary) {
+                    <span>{{ session.summary }}</span>
+                  }
+                </p>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
 </section>

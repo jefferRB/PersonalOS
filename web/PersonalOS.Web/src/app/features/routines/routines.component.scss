@@ -1,0 +1,42 @@
+:host {
+  display: block;
+}
+
+.alert p {
+  margin: 0;
+}
+
+.alert .button {
+  margin-top: var(--space-3);
+}
+
+form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.weekday {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: 0.35rem 0.6rem;
+  text-transform: capitalize;
+}
+
+/* Only the raw enum value needs its first letter raised. Applying this to every meta span turned
+   the already-worded recurrence summary into "Every Week" and the step count into "3 Steps". */
+.meta-enum {
+  text-transform: capitalize;
+}

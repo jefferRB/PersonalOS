@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using PersonalOS.Api.Contracts.Auth;
+using PersonalOS.Application.Profile;
 using PersonalOS.Infrastructure.Identity;
 
 namespace PersonalOS.Api.Controllers;
@@ -13,6 +14,7 @@ namespace PersonalOS.Api.Controllers;
 public sealed class AuthController(
     UserManager<AppUser> userManager,
     SignInManager<AppUser> signInManager,
+    UserProfileService profileService,
     TimeProvider timeProvider,
     ILogger<AuthController> logger) : ControllerBase
 {
@@ -59,6 +61,10 @@ public sealed class AuthController(
 
             return ValidationProblem(MapIdentityErrors(errors));
         }
+
+        // A new account always leaves registration with a valid preferences record, so later
+        // reads never have to create data as a side effect.
+        await profileService.InitializeAsync(user.Id, cancellationToken);
 
         logger.LogInformation("Registration succeeded for user {UserId}.", user.Id);
 

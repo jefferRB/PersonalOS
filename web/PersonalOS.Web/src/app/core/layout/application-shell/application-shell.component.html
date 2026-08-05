@@ -31,6 +31,66 @@
         <span>Today</span>
       </a>
       <a
+        routerLink="/app/calendar"
+        routerLinkActive="nav-link--active"
+        ariaCurrentWhenActive="page"
+        class="nav-link"
+        (click)="closeNavigation()"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 5h16v15H4zM4 10h16M8 3v4M16 3v4M8 14h3M8 17h3M14 14h2" />
+        </svg>
+        <span>Calendar</span>
+      </a>
+      <a
+        routerLink="/app/routines"
+        routerLinkActive="nav-link--active"
+        ariaCurrentWhenActive="page"
+        class="nav-link"
+        (click)="closeNavigation()"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 6h4M4 12h4M4 18h4M11 6h9M11 12h9M11 18h9" />
+        </svg>
+        <span>Routines</span>
+      </a>
+      <a
+        routerLink="/app/nutrition"
+        routerLinkActive="nav-link--active"
+        ariaCurrentWhenActive="page"
+        class="nav-link"
+        (click)="closeNavigation()"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 3v8a3 3 0 0 0 6 0V3M9 11v10M17 3c-1.5 2-2 4-2 6h4c0-2-.5-4-2-6ZM17 9v12" />
+        </svg>
+        <span>Nutrition</span>
+      </a>
+      <a
+        routerLink="/app/study"
+        routerLinkActive="nav-link--active"
+        ariaCurrentWhenActive="page"
+        class="nav-link"
+        (click)="closeNavigation()"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H4zM20 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z" />
+        </svg>
+        <span>Study</span>
+      </a>
+      <a
+        routerLink="/app/journal"
+        routerLinkActive="nav-link--active"
+        ariaCurrentWhenActive="page"
+        class="nav-link"
+        (click)="closeNavigation()"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 3h11a2 2 0 0 1 2 2v16H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2ZM9 8h7M9 12h7M9 16h4" />
+        </svg>
+        <span>Journal</span>
+      </a>
+      <a
         routerLink="/app/settings"
         routerLinkActive="nav-link--active"
         ariaCurrentWhenActive="page"

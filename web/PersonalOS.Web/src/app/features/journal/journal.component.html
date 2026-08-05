@@ -1,0 +1,106 @@
+<section class="page" aria-labelledby="journal-title">
+  <div class="page__header">
+    <div class="page__title">
+      <h1 id="journal-title">Journal</h1>
+      <p>
+        One reflection per day. It is stored only on the server, never in your browser's storage,
+        and it is never read or interpreted by PersonalOS.
+      </p>
+    </div>
+
+    <div class="page__actions">
+      <div class="field">
+        <label class="field__label" for="journal-date">Day</label>
+        <input
+          id="journal-date"
+          class="input"
+          type="date"
+          [value]="selectedDate()"
+          (change)="onDateChange($event)"
+        />
+      </div>
+    </div>
+  </div>
+
+  @if (loadError()) {
+    <div class="alert alert--error" role="alert">
+      <p>{{ loadError() }}</p>
+      <button class="button button--secondary" type="button" (click)="load()">Try again</button>
+    </div>
+  }
+
+  <section class="card" aria-labelledby="reflection-title">
+    <div class="card__header">
+      <h2 id="reflection-title">{{ dayLabel() }}</h2>
+      @if (entry()?.hasContent) {
+        <span class="chip chip--done">Written</span>
+      } @else {
+        <span class="chip">Empty</span>
+      }
+    </div>
+
+    <div #statusRegion tabindex="-1" class="status-region">
+      @if (isLoading()) {
+        <p class="card__hint" role="status" aria-live="polite" aria-busy="true">
+          Loading your reflection.
+        </p>
+      }
+      @if (saveSuccess()) {
+        <p class="alert alert--success" role="status" aria-live="polite">{{ saveSuccess() }}</p>
+      }
+      @if (formError()) {
+        <p class="alert alert--error" role="alert">{{ formError() }}</p>
+      }
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="field">
+        <label class="field__label" for="went-well">What went well?</label>
+        <textarea id="went-well" class="textarea" formControlName="wentWell" rows="3"></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="went-poorly">What went poorly?</label>
+        <textarea id="went-poorly" class="textarea" formControlName="wentPoorly" rows="3"></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="cause">Why did it happen?</label>
+        <textarea id="cause" class="textarea" formControlName="cause" rows="3"></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="lesson">What did I learn?</label>
+        <textarea id="lesson" class="textarea" formControlName="lesson" rows="3"></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="adjustment">What will I adjust tomorrow?</label>
+        <textarea
+          id="adjustment"
+          class="textarea"
+          formControlName="adjustmentForTomorrow"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="free-notes">Additional notes</label>
+        <textarea id="free-notes" class="textarea" formControlName="freeNotes" rows="4"></textarea>
+      </div>
+
+      <p class="card__hint">
+        Every section is optional. A single sentence is a complete entry.
+      </p>
+
+      <div class="form-actions">
+        <button class="button button--primary" type="submit" [disabled]="!canSave()">
+          {{ isSaving() ? 'Saving' : 'Save reflection' }}
+        </button>
+        @if (hasUnsavedEdits()) {
+          <span class="chip">Unsaved changes</span>
+        }
+      </div>
+    </form>
+  </section>
+</section>

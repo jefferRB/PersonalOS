@@ -85,6 +85,38 @@ Angular must not access SQL Server or contain server secrets.
 
 ## 4. Current scope
 
+Milestone 3 added the daily operating system: the calendar, recurring routines with workout
+recording, nutrition, study, the daily journal, and an integrated Today screen.
+
+Milestone 4 rebuilt the calendar around one aggregate. `PlanningItem` carries a kind, a category, a
+priority, and its own recurrence rule; `PlanningItemOccurrenceState` records what the user decided
+about a single day, and exists only once they decide something. Today reads the calendar's
+occurrence projection rather than a second task model.
+
+Reusable rules that came out of it:
+
+- a local calendar day is a `DateOnly` and is never converted through a time zone on the client;
+  build and read `Date` objects with `Date.UTC` and the `getUTC*` accessors;
+- recurrence is calculated on demand for the window a screen asks for, never generated as rows;
+- an occurrence state row is written only when the user acts on a specific day; the absence of a row
+  means planned. Once a day has been acted on, the repetition and start date are frozen, though the
+  series may still be ended earlier;
+- a month response carries counts and kind indicators, never titles or descriptions;
+- kind colours a calendar block; category never does. Every colour is paired with an icon and a
+  word, and priority is a badge rather than a hue;
+- give every table exactly one cascade parent. SQL Server rejects two cascade paths into the same
+  table, so a child of a user-owned aggregate hangs off that aggregate and carries an indexed
+  `UserId` column without a second foreign key;
+- history must not be rewritten by an edit. A recorded result references the thing it measured by
+  identifier, without a cascading foreign key;
+- a resource owned by another account returns 404, not 403;
+- `<input type="number">` binds through Angular's number value accessor, so a control declared as
+  text receives a real `number`. Parsing helpers must accept both or every entered number is
+  silently dropped;
+- SQLite cannot order by `DateTimeOffset`. Do not use one as a sort key in a store, because the
+  behaviour tests would then depend on which provider is running;
+- nutrition wording stays factual. Never propose a target, label a value, or give advice.
+
 The first increment includes:
 
 - EF Core and SQL Server;
@@ -112,10 +144,9 @@ The first increment includes:
 
 Do not implement yet:
 
-- task persistence;
-- habits;
-- nutrition;
-- journal;
+- weekly review and aggregates;
+- trends and export;
+- recurrence exceptions and positional rules;
 - reminders;
 - PWA;
 - push notifications;
@@ -253,6 +284,20 @@ Never combine credentialed requests with any-origin CORS.
 - never trust a client-supplied `UserId`;
 - test anonymous and cross-user access when resources exist.
 
+### Time and time zones
+
+- UTC is the internal source of truth; store instants as UTC;
+- read the current instant from `IClock`, never from `DateTime.Now` or `DateTimeOffset.Now`;
+- store IANA time-zone identifiers, never a fixed UTC offset;
+- validate every submitted identifier on the server and reject Windows-only identifiers;
+- never calculate an offset by hand; let `TimeZoneInfo` apply daylight-saving rules;
+- treat the browser time zone as a suggestion that requires an explicit user action to save;
+- render dates with an explicit English locale rather than the browser default;
+- let the server decide the local calendar date and the client decide its wording;
+- use a fixed clock in tests so results never depend on when or where they run;
+- do not add a time-zone package unless native .NET or browser behaviour is proven insufficient
+  through an actual failing test.
+
 ### Browser state
 
 Do not store:
@@ -260,6 +305,7 @@ Do not store:
 - JWTs;
 - current-user objects;
 - private API responses;
+- profile or time-context responses;
 - journal content;
 - nutrition history;
 - habit history.

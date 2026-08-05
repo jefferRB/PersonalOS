@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/docs/">
+    <File Path="docs/PersonalOS_Dossier_v1.0.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="../../../../../../source/repos/PersonalOS/src/PersonalOS.Api/PersonalOS.Api.csproj" />
+    <Project Path="../../../../../../source/repos/PersonalOS/src/PersonalOS.Application/PersonalOS.Application.csproj" />
+    <Project Path="../../../../../../source/repos/PersonalOS/src/PersonalOS.Domain/PersonalOS.Domain.csproj" />
+    <Project Path="../../../../../../source/repos/PersonalOS/src/PersonalOS.Infrastructure/PersonalOS.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="../../../../../../source/repos/PersonalOS/tests/PersonalOS.IntegrationTests/PersonalOS.IntegrationTests.csproj" />
+    <Project Path="../../../../../../source/repos/PersonalOS/tests/PersonalOS.UnitTests/PersonalOS.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/web/">
+    <Project Path="../../../../../../source/repos/PersonalOS/web/PersonalOS.Web/PersonalOS.Web.esproj">
+      <Build />
+      <Deploy />
+    </Project>
+  </Folder>
+</Solution>
